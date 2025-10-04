@@ -185,25 +185,22 @@ export default function Prediction() {
                   </div>
                 </div>
 
-                {/* Prediction Score */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">Cloudburst Probability</span>
-                    <span className="text-2xl font-bold text-gray-900">
-                      {(pred.prediction * 100).toFixed(1)}%
-                    </span>
+                {/* Prediction Classification */}
+                <div className="mb-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-1">Cloudburst Classification</p>
+                      <p className="text-xs text-gray-600">AI Model Prediction</p>
+                    </div>
+                    <div className={`px-4 py-2 rounded-lg font-bold text-xl ${
+                      pred.prediction >= 0.7 ? 'bg-red-100 text-red-700' :
+                      pred.prediction >= 0.4 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {pred.prediction >= 0.5 ? 'YES' : 'NO'}
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div 
-                      className={`h-3 rounded-full transition-all ${
-                        risk.level === 'High' ? 'bg-red-500' :
-                        risk.level === 'Medium' ? 'bg-yellow-500' :
-                        'bg-green-500'
-                      }`}
-                      style={{ width: `${pred.prediction * 100}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-3">
                     Model Confidence: {(pred.confidence * 100).toFixed(1)}%
                   </p>
                 </div>
@@ -277,13 +274,14 @@ export default function Prediction() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">About These Predictions</h3>
               <p className="text-sm text-gray-600">
-                These predictions are generated using an XGBoost machine learning model trained on historical weather data. 
-                The model analyzes patterns in temperature, rainfall, humidity, wind speed, and atmospheric pressure to 
-                predict the likelihood of cloudburst events for the next day (October 5th, 2025).
+                These predictions are generated using an XGBoost machine learning model trained on historical weather data 
+                for Jaynagar region. The model analyzes patterns in temperature, rainfall, humidity, wind speed, and 
+                atmospheric pressure to classify whether a cloudburst event is likely (YES/NO) for the next day (October 5th, 2025).
               </p>
               <p className="text-sm text-gray-600 mt-2">
-                <span className="font-medium">Note:</span> These are sample predictions using the first 10 records from 
-                the training dataset. In a production environment, real-time weather data would be used for predictions.
+                <span className="font-medium">Note:</span> The classification is binary (YES or NO) based on the model's 
+                analysis of weather conditions. Risk levels (High/Medium/Low) are determined by the model's confidence scores. 
+                In a production environment, real-time weather data from Jaynagar would be used for predictions.
               </p>
             </div>
           </div>

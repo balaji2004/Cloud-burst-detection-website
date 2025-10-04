@@ -108,10 +108,20 @@
   }
 }
 
-/* Custom marker styles */
-.custom-marker {
+/* Custom marker styles - Hide default Leaflet markers */
+.custom-map-marker {
   background: none !important;
   border: none !important;
+}
+
+/* Hide default blue pin markers completely */
+.leaflet-marker-icon.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-marker-icon img {
+  display: none !important;
 }
 
 /* Leaflet popup enhancements */

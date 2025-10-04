@@ -16,6 +16,36 @@ export default function Home() {
 
   const [recentAlerts, setRecentAlerts] = useState([]);
   const [lastUpdateTime, setLastUpdateTime] = useState('');
+  const [nodes, setNodes] = useState({});
+
+  // Format large numbers
+  const formatNumber = (num) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
+
+  // Helper function to determine node status
+  const getNodeStatus = (lastUpdate) => {
+    if (!lastUpdate) return 'offline';
+    
+    const lastUpdateTime = typeof lastUpdate === 'string' 
+      ? parseInt(lastUpdate) * 1000 
+      : lastUpdate;
+    
+    const now = Date.now();
+    const timeDiff = now - lastUpdateTime;
+    
+    // Online if updated within last 5 minutes
+    if (timeDiff < 5 * 60 * 1000) return 'online';
+    // Warning if updated within last 15 minutes
+    if (timeDiff < 15 * 60 * 1000) return 'warning';
+    // Otherwise offline
+    return 'offline';
+  };
 
   useEffect(() => {
     // Set initial time on client side
@@ -26,36 +56,59 @@ export default function Home() {
       setLastUpdateTime(new Date().toLocaleTimeString());
     }, 1000);
 
-    // Listen to system stats
-    const systemRef = ref(database, 'system');
-    const unsubscribe = onValue(systemRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setStats({
-          totalNodes: data.totalNodes || 0,
-          activeNodes: data.activeNodes || 0,
-          totalDataPoints: data.totalDataPoints || 0,
-          activeAlerts: data.activeAlerts || 0,
-        });
-      }
+    // Listen to nodes data
+    const nodesRef = ref(database, 'nodes');
+    const unsubscribeNodes = onValue(nodesRef, (snapshot) => {
+      const nodesData = snapshot.val() || {};
+      setNodes(nodesData);
+      
+      // Calculate stats from real data
+      const totalNodes = Object.keys(nodesData).length;
+      const activeNodes = Object.values(nodesData).filter(node => 
+        getNodeStatus(node.realtime?.lastUpdate) === 'online'
+      ).length;
+      
+      // Count total data points from history
+      let totalDataPoints = 0;
+      Object.values(nodesData).forEach(node => {
+        if (node.history) {
+          totalDataPoints += Object.keys(node.history).length;
+        }
+      });
+      
+      setStats(prev => ({
+        ...prev,
+        totalNodes,
+        activeNodes,
+        totalDataPoints
+      }));
     });
 
     // Listen to alerts
     const alertsRef = ref(database, 'alerts');
     const unsubscribeAlerts = onValue(alertsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const alertsArray = Object.values(data)
-          .filter(alert => !alert.acknowledged)
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .slice(0, 3);
-        setRecentAlerts(alertsArray);
-      }
+      const data = snapshot.val() || {};
+      const alertsArray = Object.values(data);
+      
+      // Count active (unacknowledged) alerts
+      const activeAlerts = alertsArray.filter(alert => !alert.acknowledged).length;
+      
+      // Get recent unacknowledged alerts
+      const recentAlertsArray = alertsArray
+        .filter(alert => !alert.acknowledged)
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 3);
+      
+      setRecentAlerts(recentAlertsArray);
+      setStats(prev => ({
+        ...prev,
+        activeAlerts
+      }));
     });
 
     return () => {
       clearInterval(timeInterval);
-      unsubscribe();
+      unsubscribeNodes();
       unsubscribeAlerts();
     };
   }, []);
@@ -93,42 +146,69 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Key Features */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <Cloud className="h-8 w-8 text-blue-600" />
-              <span className="text-3xl font-bold text-gray-900">{stats.totalNodes}</span>
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Total Nodes</h3>
-            <p className="text-sm text-gray-600">Sensor nodes deployed</p>
+        {/* Live Statistics */}
+        <div className="mt-20">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">Live System Statistics</h2>
+            <Link 
+              href="/admin"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+            >
+              View Analytical Dashboard →
+            </Link>
           </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <Activity className="h-8 w-8 text-green-600" />
-              <span className="text-3xl font-bold text-gray-900">{stats.activeNodes}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <Cloud className="h-8 w-8 text-blue-600" />
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="text-3xl font-bold text-gray-900">{stats.totalNodes}</span>
+                </div>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Total Nodes</h3>
+              <p className="text-sm text-gray-600">Sensor nodes deployed</p>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Active Sensors</h3>
-            <p className="text-sm text-gray-600">Currently online</p>
-          </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <MapPin className="h-8 w-8 text-purple-600" />
-              <span className="text-3xl font-bold text-gray-900">{stats.totalDataPoints}</span>
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <Activity className="h-8 w-8 text-green-600" />
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-3xl font-bold text-gray-900">{stats.activeNodes}</span>
+                </div>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Active Sensors</h3>
+              <p className="text-sm text-gray-600">Currently online</p>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Data Points</h3>
-            <p className="text-sm text-gray-600">Collected readings</p>
-          </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-              <span className="text-3xl font-bold text-gray-900">{stats.activeAlerts}</span>
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <MapPin className="h-8 w-8 text-purple-600" />
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-3xl font-bold text-gray-900" title={stats.totalDataPoints.toLocaleString()}>
+                    {formatNumber(stats.totalDataPoints)}
+                  </span>
+                </div>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Data Points</h3>
+              <p className="text-sm text-gray-600">Collected readings</p>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">Active Alerts</h3>
-            <p className="text-sm text-gray-600">Unacknowledged</p>
+
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <AlertTriangle className="h-8 w-8 text-red-600" />
+                <div className="flex items-center gap-2">
+                  {stats.activeAlerts > 0 && (
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  )}
+                  <span className="text-3xl font-bold text-gray-900">{stats.activeAlerts}</span>
+                </div>
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Active Alerts</h3>
+              <p className="text-sm text-gray-600">Unacknowledged</p>
+            </div>
           </div>
         </div>
 

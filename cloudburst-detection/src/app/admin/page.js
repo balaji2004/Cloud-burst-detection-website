@@ -253,6 +253,7 @@ export default function AdminPanel() {
       await update(ref(database, `nodes/${selectedNode.id}/metadata`), {
         name: selectedNode.metadata.name,
         description: selectedNode.metadata.description || '',
+        type: selectedNode.metadata.type || 'sensor',
         latitude: parseFloat(selectedNode.metadata.latitude) || 0,
         longitude: parseFloat(selectedNode.metadata.longitude) || 0,
         altitude: parseFloat(selectedNode.metadata.altitude) || 0,
@@ -1474,6 +1475,62 @@ export default function AdminPanel() {
                     />
                   </div>
 
+                  {/* Node Type Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      🔌 Node Type
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedNode(prev => ({
+                          ...prev,
+                          metadata: { ...prev.metadata, type: 'gateway' }
+                        }))}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                          selectedNode.metadata?.type === 'gateway'
+                            ? 'bg-blue-50 border-blue-500 text-blue-700 font-semibold shadow-sm'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className={`w-6 h-6 rounded-full ${
+                          selectedNode.metadata?.type === 'gateway' ? 'bg-blue-500' : 'bg-gray-400'
+                        } border-[3px] border-white shadow-sm`}></div>
+                        <div className="text-left">
+                          <div className="text-sm font-semibold">Gateway Node</div>
+                          <div className="text-xs opacity-75">Network coordinator</div>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedNode(prev => ({
+                          ...prev,
+                          metadata: { ...prev.metadata, type: 'sensor' }
+                        }))}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
+                          selectedNode.metadata?.type === 'sensor' || !selectedNode.metadata?.type
+                            ? 'bg-green-50 border-green-500 text-green-700 font-semibold shadow-sm'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 rounded-full ${
+                          selectedNode.metadata?.type === 'sensor' || !selectedNode.metadata?.type ? 'bg-green-500' : 'bg-gray-400'
+                        } border-2 border-white shadow-sm`}></div>
+                        <div className="text-left">
+                          <div className="text-sm font-semibold">Sensor Node</div>
+                          <div className="text-xs opacity-75">Regular monitoring</div>
+                        </div>
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {selectedNode.metadata?.type === 'gateway' 
+                        ? '🛰️ Gateway nodes coordinate the network and appear larger on the map'
+                        : '📡 Sensor nodes collect environmental data and report to gateways'
+                      }
+                    </p>
+                  </div>
+
                   {/* Coordinate Capture Method */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1641,6 +1698,120 @@ export default function AdminPanel() {
                       }))}
                       className="input-field"
                     />
+                  </div>
+
+                  {/* Nearby Nodes Configuration */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      🔗 Nearby Nodes Configuration
+                    </label>
+                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+                      <p className="text-xs text-gray-600 mb-3">
+                        Select nodes that are in communication range or form part of this node's network mesh.
+                        These connections will be visualized as lines on the map.
+                      </p>
+                      
+                      {/* Current nearby nodes */}
+                      {selectedNode.metadata?.nearbyNodes && selectedNode.metadata.nearbyNodes.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs font-semibold text-gray-700 mb-2">
+                            Connected Nodes ({selectedNode.metadata.nearbyNodes.length}):
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {selectedNode.metadata.nearbyNodes.map((nearbyNodeId) => {
+                              const nearbyNode = nodes[nearbyNodeId];
+                              return (
+                                <div
+                                  key={nearbyNodeId}
+                                  className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg text-sm"
+                                >
+                                  <span className="font-medium">
+                                    {nearbyNode?.metadata?.name || nearbyNodeId}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedNode(prev => ({
+                                        ...prev,
+                                        metadata: {
+                                          ...prev.metadata,
+                                          nearbyNodes: prev.metadata.nearbyNodes.filter(id => id !== nearbyNodeId)
+                                        }
+                                      }));
+                                    }}
+                                    className="text-blue-600 hover:text-blue-900"
+                                    title="Remove connection"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Add nearby node selector */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Add Nearby Node:</p>
+                        <select
+                          onChange={(e) => {
+                            const nodeIdToAdd = e.target.value;
+                            if (nodeIdToAdd && nodeIdToAdd !== selectedNode.id) {
+                              const currentNearby = selectedNode.metadata?.nearbyNodes || [];
+                              if (!currentNearby.includes(nodeIdToAdd)) {
+                                setSelectedNode(prev => ({
+                                  ...prev,
+                                  metadata: {
+                                    ...prev.metadata,
+                                    nearbyNodes: [...currentNearby, nodeIdToAdd]
+                                  }
+                                }));
+                              }
+                            }
+                            e.target.value = ''; // Reset selector
+                          }}
+                          className="input-field text-sm"
+                          defaultValue=""
+                        >
+                          <option value="">Select a node to connect...</option>
+                          {Object.entries(nodes)
+                            .filter(([nodeId]) => 
+                              nodeId !== selectedNode.id && 
+                              !(selectedNode.metadata?.nearbyNodes || []).includes(nodeId)
+                            )
+                            .map(([nodeId, node]) => (
+                              <option key={nodeId} value={nodeId}>
+                                {node.metadata?.name || nodeId}
+                                {node.metadata?.type === 'gateway' ? ' (Gateway)' : ' (Sensor)'}
+                              </option>
+                            ))
+                          }
+                        </select>
+                      </div>
+
+                      {/* Quick actions */}
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedNode(prev => ({
+                              ...prev,
+                              metadata: { ...prev.metadata, nearbyNodes: [] }
+                            }));
+                          }}
+                          className="text-xs text-red-600 hover:text-red-800 font-medium"
+                        >
+                          Clear All Connections
+                        </button>
+                      </div>
+
+                      {selectedNode.metadata?.nearbyNodes && selectedNode.metadata.nearbyNodes.length === 0 && (
+                        <p className="text-xs text-gray-500 mt-2 italic">
+                          No nearby nodes configured. This node will appear isolated on the map.
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-3 mt-6">

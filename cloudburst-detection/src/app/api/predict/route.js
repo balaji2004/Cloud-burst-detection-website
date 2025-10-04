@@ -70,9 +70,15 @@ function getLocation(values, headers) {
   // Find location columns (they start with "Location_")
   for (let i = 0; i < headers.length; i++) {
     if (headers[i].startsWith('Location_') && parseFloat(values[i]) === 1) {
-      return headers[i].replace('Location_', '');
+      const location = headers[i].replace('Location_', '');
+      // Replace Albury with Jaynagar for our deployment location
+      if (location.toLowerCase() === 'albury') {
+        return 'Jaynagar';
+      }
+      return location;
     }
   }
-  return 'Unknown';
+  // Default location for our deployment
+  return 'Jaynagar';
 }
 
