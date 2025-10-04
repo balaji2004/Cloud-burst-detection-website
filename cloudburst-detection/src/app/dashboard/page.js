@@ -1,50 +1,412 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { database, ref, onValue } from '@/lib/firebase';
+import { useState, useEffect } from 'react';
+import { ref, onValue } from 'firebase/database';
+import { database } from '@/lib/firebase';
+import dynamic from 'next/dynamic';
+import NodeStatusBadge from '@/components/NodeStatusBadge';
+import {
+  X,
+  Thermometer,
+  Gauge,
+  Droplets,
+  Radio,
+  MapPin,
+  LineChart,
+  AlertCircle,
+  MapPinned,
+  Mountain,
+  User,
+  Clock,
+  Signal
+} from 'lucide-react';
 
-export default function Dashboard() {
-  const [data, setData] = useState(null);
+// Dynamically import map component (disable SSR for Leaflet)
+const DashboardMap = dynamic(() => import('@/components/DashboardMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600 font-medium">Loading map...</p>
+      </div>
+    </div>
+  )
+});
+
+/**
+ * Dashboard Page Component
+ * Main dashboard with real-time Firebase data and interactive Leaflet map
+ */
+export default function DashboardPage() {
+  // State management
+  const [nodes, setNodes] = useState([]);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /**
+   * Firebase Real-time Listener
+   * Listens to /nodes path and updates state when data changes
+   */
   useEffect(() => {
-    console.log('Attempting Firebase connection...');
-    
+    console.log('🔥 Initializing Firebase listener...');
+
     const nodesRef = ref(database, 'nodes');
+
     const unsubscribe = onValue(
-      nodesRef, 
+      nodesRef,
       (snapshot) => {
-        console.log('Firebase data received:', snapshot.val());
-        setData(snapshot.val());
+        try {
+          const data = snapshot.val();
+          console.log('📦 Firebase data received:', data);
+
+          if (data) {
+            // Convert object to array and validate structure
+            const nodeArray = Object.values(data).filter(
+              node => node.metadata && node.metadata.latitude && node.metadata.longitude
+            );
+            console.log(`✅ Processed ${nodeArray.length} valid nodes`);
+            setNodes(nodeArray);
+          } else {
+            console.log('⚠️ No nodes found in database');
+            setNodes([]);
+          }
+          setLoading(false);
+          setError(null);
+        } catch (err) {
+          console.error('❌ Error processing nodes:', err);
+          setError('Failed to process node data');
+          setLoading(false);
+        }
       },
-      (error) => {
-        console.error('Firebase error:', error);
-        setError(error.message);
+      (err) => {
+        console.error('❌ Firebase error:', err);
+        setError(err.message);
+        setLoading(false);
       }
     );
 
-    return () => unsubscribe();
+    // Cleanup listener on unmount
+    return () => {
+      console.log('🧹 Cleaning up Firebase listener');
+      unsubscribe();
+    };
   }, []);
 
+  /**
+   * Determines node status based on last seen timestamp and alert status
+   * @param {Object} node - Node object with realtime data
+   * @returns {string} 'online', 'offline', or 'warning'
+   */
+  const getNodeStatus = (node) => {
+    if (!node.realtime || !node.realtime.lastSeen) return 'offline';
+
+    // Check if node has critical alert
+    if (node.realtime.alertStatus === 'critical') return 'warning';
+
+    // Check if node is online (last seen within 5 minutes)
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+    return node.realtime.lastSeen > fiveMinutesAgo ? 'online' : 'offline';
+  };
+
+  /**
+   * Formats timestamp to human-readable "time ago" format
+   * @param {number} timestamp - Unix timestamp in milliseconds
+   * @returns {string} Formatted time string
+   */
+  const formatTimeAgo = (timestamp) => {
+    if (!timestamp) return 'Never';
+
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+    if (seconds < 60) return `${seconds} sec ago`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`;
+    return `${Math.floor(seconds / 86400)} days ago`;
+  };
+
+  /**
+   * Formats timestamp to full date and time string
+   * @param {number} timestamp - Unix timestamp in milliseconds
+   * @returns {string} Formatted date/time string
+   */
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    return new Date(timestamp).toLocaleString('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+  };
+
+  // ==================== LOADING STATE ====================
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-blue-600 mx-auto mb-6"></div>
+          <p className="text-gray-700 font-semibold text-lg mb-2">Loading Dashboard</p>
+          <p className="text-gray-500 text-sm">Connecting to Firebase...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== ERROR STATE ====================
+  if (error) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md px-6">
+          <AlertCircle className="w-20 h-20 text-red-500 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Error Loading Dashboard</h2>
+          <p className="text-gray-600 mb-6 leading-relaxed">{error}</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Retry Connection
+            </button>
+            <p className="text-sm text-gray-500">
+              Make sure Firebase is properly configured in <code className="bg-gray-200 px-1 rounded">firebase.js</code>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== EMPTY STATE ====================
+  if (nodes.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+        <div className="text-center max-w-md px-6">
+          <MapPin className="w-24 h-24 text-gray-400 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">No Nodes Registered</h2>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            Register your first sensor node to start monitoring weather conditions and detecting cloudbursts.
+          </p>
+          <button
+            onClick={() => (window.location.href = '/register')}
+            className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl"
+          >
+            Register First Node
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ==================== MAIN DASHBOARD ====================
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Dashboard Test</h1>
-      
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <strong>Error:</strong> {error}
+    <div className="relative h-screen overflow-hidden">
+      {/* Map Component */}
+      <DashboardMap
+        nodes={nodes}
+        selectedNode={selectedNode}
+        setSelectedNode={setSelectedNode}
+        getNodeStatus={getNodeStatus}
+        formatTimeAgo={formatTimeAgo}
+      />
+
+      {/* Node Counter Badge */}
+      <div className="absolute top-4 left-4 z-[1000] bg-white rounded-lg shadow-lg px-4 py-3">
+        <div className="flex items-center gap-3">
+          <MapPinned className="w-5 h-5 text-blue-600" />
+          <div>
+            <p className="text-xs text-gray-500 font-medium">Active Nodes</p>
+            <p className="text-2xl font-bold text-gray-900">{nodes.length}</p>
+          </div>
         </div>
-      )}
-      
-      {!data && !error && <p>Loading...</p>}
-      
-      {data && (
-        <div>
-          <h2 className="font-bold mb-2">Firebase Data:</h2>
-          <pre className="bg-gray-100 p-4 rounded overflow-auto">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </div>
+      </div>
+
+      {/* Sidebar Panel - Slide in from right when node is selected */}
+      {selectedNode && (
+        <>
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-30 z-[1000] md:hidden"
+            onClick={() => setSelectedNode(null)}
+          />
+
+          {/* Sidebar */}
+          <div className="fixed top-0 right-0 w-full md:w-[420px] h-full bg-white shadow-2xl z-[1001] overflow-y-auto transform transition-transform duration-300 ease-out">
+            {/* Header */}
+            <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-5 flex justify-between items-center shadow-md z-10">
+              <div>
+                <h2 className="text-xl font-bold">{selectedNode.metadata.name}</h2>
+                <p className="text-blue-100 text-sm mt-0.5">{selectedNode.metadata.nodeId}</p>
+              </div>
+              <button
+                onClick={() => setSelectedNode(null)}
+                className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
+                aria-label="Close sidebar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Status Badge */}
+            <div className="p-5 bg-gray-50 border-b">
+              <NodeStatusBadge status={getNodeStatus(selectedNode)} showDot showText size="lg" />
+            </div>
+
+            {/* Current Sensor Readings */}
+            <div className="p-5 border-b">
+              <h3 className="font-semibold text-lg mb-4 text-gray-900">Current Readings</h3>
+              <div className="space-y-3">
+                {/* Temperature */}
+                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-red-100 rounded-lg">
+                      <Thermometer className="w-5 h-5 text-red-600" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">Temperature</span>
+                  </div>
+                  <span className="font-bold text-lg text-gray-900">
+                    {selectedNode.realtime?.temperature?.toFixed(1) || 'N/A'}°C
+                  </span>
+                </div>
+
+                {/* Pressure */}
+                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Gauge className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">Pressure</span>
+                  </div>
+                  <span className="font-bold text-lg text-gray-900">
+                    {selectedNode.realtime?.pressure?.toFixed(1) || 'N/A'} hPa
+                  </span>
+                </div>
+
+                {/* Humidity (if available) */}
+                {selectedNode.realtime?.humidity !== null && selectedNode.realtime?.humidity !== undefined && (
+                  <div className="flex justify-between items-center p-3 bg-cyan-50 rounded-lg border border-cyan-100">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-cyan-100 rounded-lg">
+                        <Droplets className="w-5 h-5 text-cyan-600" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">Humidity</span>
+                    </div>
+                    <span className="font-bold text-lg text-gray-900">
+                      {selectedNode.realtime.humidity.toFixed(1)}%
+                    </span>
+                  </div>
+                )}
+
+                {/* Signal Strength */}
+                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-100">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Signal className="w-5 h-5 text-green-600" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">Signal Strength</span>
+                  </div>
+                  <span className="font-bold text-lg text-gray-900">
+                    {selectedNode.realtime?.rssi || 'N/A'} dBm
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Node Information */}
+            <div className="p-5 border-b">
+              <h3 className="font-semibold text-lg mb-4 text-gray-900">Node Information</h3>
+              <div className="space-y-3">
+                {/* Node Type */}
+                <div className="flex items-start gap-3">
+                  <Radio className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 font-medium uppercase">Type</p>
+                    <p className="text-sm text-gray-900 font-medium capitalize">
+                      {selectedNode.metadata.type}
+                      {selectedNode.metadata.type === 'gateway' && ' 🛰️'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Location Coordinates */}
+                <div className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 font-medium uppercase">Coordinates</p>
+                    <p className="text-sm text-gray-900 font-mono">
+                      {selectedNode.metadata.latitude.toFixed(4)}°N,{' '}
+                      {selectedNode.metadata.longitude.toFixed(4)}°E
+                    </p>
+                  </div>
+                </div>
+
+                {/* Altitude */}
+                {selectedNode.metadata.altitude && (
+                  <div className="flex items-start gap-3">
+                    <Mountain className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500 font-medium uppercase">Altitude</p>
+                      <p className="text-sm text-gray-900 font-medium">
+                        {selectedNode.metadata.altitude.toFixed(1)} meters
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Installed By */}
+                {selectedNode.metadata.installedBy && (
+                  <div className="flex items-start gap-3">
+                    <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500 font-medium uppercase">Installed By</p>
+                      <p className="text-sm text-gray-900 font-medium">
+                        {selectedNode.metadata.installedBy}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                {selectedNode.metadata.description && (
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 font-medium uppercase mb-1">Description</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {selectedNode.metadata.description}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Last Updated */}
+            <div className="p-5 border-b bg-gray-50">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Clock className="w-4 h-4" />
+                <span className="font-medium">Last Updated:</span>
+                <span>{formatTimestamp(selectedNode.realtime?.lastSeen)}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="p-5 space-y-3">
+              <button
+                onClick={() =>
+                  (window.location.href = `/graphs?node=${selectedNode.metadata.nodeId}`)
+                }
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-semibold shadow-md hover:shadow-lg"
+              >
+                <LineChart className="w-5 h-5" />
+                View Detailed History
+              </button>
+
+              <button
+                onClick={() => setSelectedNode(null)}
+                className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,0 +1,1443 @@
+// src/app/admin/page.js
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { database, ref, onValue, update, remove, set, query, limitToLast } from '@/lib/firebase';
+import { formatTimeAgo, formatDateTime, getNodeStatus, generateId } from '@/lib/utils';
+import { 
+  Shield, Users, AlertTriangle, FileText, BarChart, Database,
+  Edit, Trash2, Eye, Download, Upload, Activity, CheckCircle, 
+  Bell, MessageSquare, Search, X, ChevronLeft, ChevronRight,
+  Plus, Filter, Calendar, XCircle
+} from 'lucide-react';
+
+export default function AdminPanel() {
+  // State management
+  const [nodes, setNodes] = useState({});
+  const [alerts, setAlerts] = useState([]);
+  const [contacts, setContacts] = useState({});
+  const [logs, setLogs] = useState([]);
+  const [stats, setStats] = useState({
+    uptime: 99.8,
+    packetSuccessRate: 97.2,
+    alertStats: { total: 0, critical: 0, warning: 0, today: 0 },
+    smsDeliveryRate: 94.5
+  });
+  const [loading, setLoading] = useState(true);
+  
+  // Node management state
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState(null);
+  const [nodeSearchTerm, setNodeSearchTerm] = useState('');
+  const [nodeSortBy, setNodeSortBy] = useState('name');
+  const [currentPage, setCurrentPage] = useState(1);
+  const nodesPerPage = 10;
+
+  // Alert form state
+  const [alertForm, setAlertForm] = useState({
+    message: '',
+    severity: 'warning',
+    affectedNodes: [],
+    sendSMS: false
+  });
+  const [recipients, setRecipients] = useState([]);
+  const [showNodeSelector, setShowNodeSelector] = useState(false);
+  const [nodeSearchInAlert, setNodeSearchInAlert] = useState('');
+
+  // System logs state
+  const [logFilter, setLogFilter] = useState('all');
+  const [logDateRange, setLogDateRange] = useState('24h');
+  const [logSearchTerm, setLogSearchTerm] = useState('');
+
+  // Data management state
+  const [showCleanupDialog, setShowCleanupDialog] = useState(false);
+  const [cleanupDays, setCleanupDays] = useState(30);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importPreview, setImportPreview] = useState(null);
+
+  // Toast state
+  const [toast, setToast] = useState({ show: false, type: '', message: '' });
+
+  // Load data from Firebase
+  useEffect(() => {
+    // Load nodes
+    const nodesRef = ref(database, 'nodes');
+    const unsubscribeNodes = onValue(nodesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      setNodes(data);
+    });
+
+    // Load alerts
+    const alertsRef = ref(database, 'alerts');
+    const unsubscribeAlerts = onValue(alertsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const alertsArray = Object.entries(data).map(([id, alert]) => ({
+        id,
+        ...alert
+      })).sort((a, b) => b.timestamp - a.timestamp);
+      setAlerts(alertsArray);
+
+      // Calculate alert stats
+      const today = new Date().setHours(0, 0, 0, 0);
+      const todayAlerts = alertsArray.filter(a => a.timestamp >= today);
+      setStats(prev => ({
+        ...prev,
+        alertStats: {
+          total: alertsArray.length,
+          critical: alertsArray.filter(a => a.severity === 'critical').length,
+          warning: alertsArray.filter(a => a.severity === 'warning').length,
+          today: todayAlerts.length
+        }
+      }));
+    });
+
+    // Load contacts
+    const contactsRef = ref(database, 'contacts');
+    const unsubscribeContacts = onValue(contactsRef, (snapshot) => {
+      setContacts(snapshot.val() || {});
+    });
+
+    // Load logs
+    const logsRef = query(ref(database, 'logs'), limitToLast(100));
+    const unsubscribeLogs = onValue(logsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const logsArray = Object.entries(data).map(([id, log]) => ({
+        id,
+        ...log
+      })).sort((a, b) => b.timestamp - a.timestamp);
+      setLogs(logsArray);
+    });
+
+    setLoading(false);
+
+    return () => {
+      unsubscribeNodes();
+      unsubscribeAlerts();
+      unsubscribeContacts();
+      unsubscribeLogs();
+    };
+  }, []);
+
+  // Calculate recipients when affected nodes change
+  useEffect(() => {
+    if (alertForm.affectedNodes.length === 0) {
+      setRecipients([]);
+      return;
+    }
+
+    const affectedContacts = Object.values(contacts).filter(contact =>
+      contact.associatedNodes?.some(nodeId => 
+        alertForm.affectedNodes.includes(nodeId)
+      )
+    );
+
+    setRecipients(affectedContacts);
+  }, [alertForm.affectedNodes, contacts]);
+
+  // Show toast notification
+  const showToast = (type, message) => {
+    setToast({ show: true, type, message });
+    setTimeout(() => setToast({ show: false, type: '', message: '' }), 5000);
+  };
+
+  // Node Management Functions
+  const handleEditNode = (node) => {
+    setSelectedNode(node);
+    setShowEditModal(true);
+  };
+
+  const handleSaveNode = async () => {
+    try {
+      await update(ref(database, `nodes/${selectedNode.id}/metadata`), {
+        name: selectedNode.metadata.name,
+        description: selectedNode.metadata.description || '',
+        latitude: parseFloat(selectedNode.metadata.latitude) || 0,
+        longitude: parseFloat(selectedNode.metadata.longitude) || 0,
+        altitude: parseFloat(selectedNode.metadata.altitude) || 0,
+        nearbyNodes: selectedNode.metadata.nearbyNodes || []
+      });
+
+      showToast('success', 'Node updated successfully');
+      setShowEditModal(false);
+      setSelectedNode(null);
+
+      // Log the edit
+      const logId = generateId('log');
+      await set(ref(database, `logs/${logId}`), {
+        id: logId,
+        type: 'node_edit',
+        message: `Node ${selectedNode.id} was edited`,
+        timestamp: Date.now(),
+        metadata: { nodeId: selectedNode.id }
+      });
+    } catch (error) {
+      showToast('error', `Failed to update node: ${error.message}`);
+    }
+  };
+
+  const handleDeleteNode = async () => {
+    try {
+      await remove(ref(database, `nodes/${nodeToDelete}`));
+      
+      showToast('success', 'Node deleted successfully');
+      setShowDeleteDialog(false);
+      setNodeToDelete(null);
+
+      // Log the deletion
+      const logId = generateId('log');
+      await set(ref(database, `logs/${logId}`), {
+        id: logId,
+        type: 'node_deletion',
+        message: `Node ${nodeToDelete} was deleted`,
+        timestamp: Date.now(),
+        metadata: { nodeId: nodeToDelete }
+      });
+    } catch (error) {
+      showToast('error', `Could not delete node. Try again: ${error.message}`);
+    }
+  };
+
+  const confirmDeleteNode = (nodeId) => {
+    setNodeToDelete(nodeId);
+    setShowDeleteDialog(true);
+  };
+
+  const scrollToLogs = (nodeId) => {
+    setLogSearchTerm(nodeId);
+    document.getElementById('system-logs')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Alert Creation Functions
+  const handleCreateAlert = async (e) => {
+    e.preventDefault();
+
+    if (alertForm.message.length > 500) {
+      showToast('error', 'Message must be 500 characters or less');
+      return;
+    }
+
+    if (alertForm.affectedNodes.length === 0) {
+      showToast('error', 'Please select at least one node');
+      return;
+    }
+
+    try {
+      const alertId = generateId('alert');
+      const recipientPhones = recipients.map(c => c.phone);
+
+      const alertData = {
+        id: alertId,
+        type: 'manual',
+        severity: alertForm.severity,
+        message: alertForm.message,
+        affectedNodes: alertForm.affectedNodes,
+        timestamp: Date.now(),
+        acknowledged: false,
+        sentSMS: alertForm.sendSMS,
+        recipients: recipientPhones,
+        createdBy: 'admin'
+      };
+
+      await set(ref(database, `alerts/${alertId}`), alertData);
+
+      // Update alertStatus for each affected node
+      for (const nodeId of alertForm.affectedNodes) {
+        await update(ref(database, `nodes/${nodeId}`), {
+          alertStatus: alertForm.severity
+        });
+      }
+
+      // Log the alert creation
+      const logId = generateId('log');
+      await set(ref(database, `logs/${logId}`), {
+        id: logId,
+        type: 'alert_triggered',
+        message: `Manual alert created affecting ${alertForm.affectedNodes.length} node(s)`,
+        timestamp: Date.now(),
+        metadata: { alertId, affectedNodes: alertForm.affectedNodes }
+      });
+
+      if (alertForm.sendSMS) {
+        showToast('warning', 'SMS feature coming soon');
+      }
+
+      showToast('success', `Alert created successfully! Recipients: ${recipientPhones.length}`);
+      
+      // Clear form
+      setAlertForm({
+        message: '',
+        severity: 'warning',
+        affectedNodes: [],
+        sendSMS: false
+      });
+    } catch (error) {
+      showToast('error', `Failed to create alert: ${error.message}`);
+    }
+  };
+
+  const toggleNodeSelection = (nodeId) => {
+    setAlertForm(prev => ({
+      ...prev,
+      affectedNodes: prev.affectedNodes.includes(nodeId)
+        ? prev.affectedNodes.filter(id => id !== nodeId)
+        : [...prev.affectedNodes, nodeId]
+    }));
+  };
+
+  const selectAllNodes = () => {
+    setAlertForm(prev => ({
+      ...prev,
+      affectedNodes: Object.keys(nodes)
+    }));
+  };
+
+  const deselectAllNodes = () => {
+    setAlertForm(prev => ({
+      ...prev,
+      affectedNodes: []
+    }));
+  };
+
+  // System Logs Functions
+  const getLogIcon = (type) => {
+    switch (type) {
+      case 'node_registration':
+        return <div className="text-blue-600"><Users className="h-5 w-5" /></div>;
+      case 'alert_triggered':
+        return <div className="text-red-600"><AlertTriangle className="h-5 w-5" /></div>;
+      case 'sms_sent':
+        return <div className="text-green-600"><MessageSquare className="h-5 w-5" /></div>;
+      case 'system_error':
+        return <div className="text-orange-600"><XCircle className="h-5 w-5" /></div>;
+      case 'data_received':
+        return <div className="text-gray-600"><Database className="h-5 w-5" /></div>;
+      case 'node_edit':
+        return <div className="text-blue-600"><Edit className="h-5 w-5" /></div>;
+      case 'node_deletion':
+        return <div className="text-red-600"><Trash2 className="h-5 w-5" /></div>;
+      default:
+        return <div className="text-gray-600"><FileText className="h-5 w-5" /></div>;
+    }
+  };
+
+  const getLogTypeLabel = (type) => {
+    switch (type) {
+      case 'node_registration': return 'Node Registration';
+      case 'alert_triggered': return 'Alert Triggered';
+      case 'sms_sent': return 'SMS Sent';
+      case 'system_error': return 'System Error';
+      case 'data_received': return 'Data Received';
+      case 'node_edit': return 'Node Edited';
+      case 'node_deletion': return 'Node Deleted';
+      default: return 'System Event';
+    }
+  };
+
+  const exportLogsToCSV = () => {
+    const headers = ['Timestamp', 'Type', 'Message'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredLogs.map(log => [
+        formatDateTime(log.timestamp),
+        getLogTypeLabel(log.type),
+        `"${log.message}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `system_logs_${Date.now()}.csv`;
+    a.click();
+    showToast('success', 'Logs exported to CSV');
+  };
+
+  // Data Management Functions
+  const handleCleanupOldData = async () => {
+    try {
+      const cutoffTime = Date.now() - (cleanupDays * 24 * 60 * 60 * 1000);
+      let deletedCount = 0;
+
+      for (const nodeId in nodes) {
+        const history = nodes[nodeId].history || {};
+        for (const timestamp in history) {
+          if (parseInt(timestamp) < cutoffTime) {
+            await remove(ref(database, `nodes/${nodeId}/history/${timestamp}`));
+            deletedCount++;
+          }
+        }
+      }
+
+      showToast('success', `Cleaned up ${deletedCount} old data points`);
+      setShowCleanupDialog(false);
+
+      // Log cleanup
+      const logId = generateId('log');
+      await set(ref(database, `logs/${logId}`), {
+        id: logId,
+        type: 'data_cleanup',
+        message: `Cleaned up ${deletedCount} data points older than ${cleanupDays} days`,
+        timestamp: Date.now(),
+        metadata: { deletedCount, cleanupDays }
+      });
+    } catch (error) {
+      showToast('error', `Failed to clean up data: ${error.message}`);
+    }
+  };
+
+  const handleExportAllData = async () => {
+    try {
+      const exportData = {
+        nodes,
+        alerts: alerts.reduce((acc, alert) => ({ ...acc, [alert.id]: alert }), {}),
+        contacts,
+        logs: logs.reduce((acc, log) => ({ ...acc, [log.id]: log }), {}),
+        exportDate: Date.now()
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const date = new Date().toISOString().split('T')[0];
+      a.download = `cloudburst_data_${date}.json`;
+      a.click();
+
+      showToast('success', 'Data exported successfully');
+    } catch (error) {
+      showToast('error', `Failed to export data: ${error.message}`);
+    }
+  };
+
+  const handleImportData = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        setImportPreview(data);
+        setShowImportDialog(true);
+      } catch (error) {
+        showToast('error', 'Invalid JSON file');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const confirmImportData = async () => {
+    try {
+      if (importPreview.nodes) {
+        await set(ref(database, 'nodes'), importPreview.nodes);
+      }
+      if (importPreview.alerts) {
+        await set(ref(database, 'alerts'), importPreview.alerts);
+      }
+      if (importPreview.contacts) {
+        await set(ref(database, 'contacts'), importPreview.contacts);
+      }
+
+      showToast('success', 'Data imported successfully');
+      setShowImportDialog(false);
+      setImportPreview(null);
+
+      // Log import
+      const logId = generateId('log');
+      await set(ref(database, `logs/${logId}`), {
+        id: logId,
+        type: 'data_import',
+        message: 'Historical data was imported',
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      showToast('error', `Failed to import data: ${error.message}`);
+    }
+  };
+
+  const handleResetSystem = async () => {
+    if (resetConfirmText !== 'DELETE') {
+      showToast('error', 'Please type DELETE to confirm');
+      return;
+    }
+
+    try {
+      await remove(ref(database, 'nodes'));
+      await remove(ref(database, 'alerts'));
+      await remove(ref(database, 'contacts'));
+      await remove(ref(database, 'logs'));
+
+      showToast('success', 'System reset complete');
+      setShowResetDialog(false);
+      setResetConfirmText('');
+    } catch (error) {
+      showToast('error', `Failed to reset system: ${error.message}`);
+    }
+  };
+
+  // Filtering and pagination
+  const filteredNodes = Object.entries(nodes)
+    .filter(([nodeId, node]) => {
+      const searchLower = nodeSearchTerm.toLowerCase();
+      const nodeName = node.metadata?.name?.toLowerCase() || '';
+      return nodeId.toLowerCase().includes(searchLower) || nodeName.includes(searchLower);
+    })
+    .sort(([aId, a], [bId, b]) => {
+      switch (nodeSortBy) {
+        case 'name':
+          return (a.metadata?.name || aId).localeCompare(b.metadata?.name || bId);
+        case 'status':
+          return getNodeStatus(b.lastSeen).localeCompare(getNodeStatus(a.lastSeen));
+        case 'lastSeen':
+          return (b.lastSeen || 0) - (a.lastSeen || 0);
+        default:
+          return 0;
+      }
+    });
+
+  const paginatedNodes = filteredNodes.slice(
+    (currentPage - 1) * nodesPerPage,
+    currentPage * nodesPerPage
+  );
+  const totalPages = Math.ceil(filteredNodes.length / nodesPerPage);
+
+  const filteredLogs = logs.filter(log => {
+    // Filter by type
+    if (logFilter !== 'all') {
+      const typeMap = {
+        registrations: 'node_registration',
+        alerts: 'alert_triggered',
+        sms: 'sms_sent',
+        errors: 'system_error'
+      };
+      if (log.type !== typeMap[logFilter]) return false;
+    }
+
+    // Filter by date range
+    const now = Date.now();
+    let cutoff;
+    switch (logDateRange) {
+      case '24h': cutoff = now - (24 * 60 * 60 * 1000); break;
+      case '7d': cutoff = now - (7 * 24 * 60 * 60 * 1000); break;
+      case '30d': cutoff = now - (30 * 24 * 60 * 60 * 1000); break;
+      default: cutoff = 0;
+    }
+    if (log.timestamp < cutoff) return false;
+
+    // Filter by search term
+    if (logSearchTerm && !log.message.toLowerCase().includes(logSearchTerm.toLowerCase())) {
+      return false;
+    }
+
+    return true;
+  });
+
+  const filteredNodesForAlert = Object.entries(nodes).filter(([nodeId, node]) => {
+    const searchLower = nodeSearchInAlert.toLowerCase();
+    const nodeName = node.metadata?.name?.toLowerCase() || '';
+    return nodeId.toLowerCase().includes(searchLower) || nodeName.includes(searchLower);
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin panel...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <Shield className="h-8 w-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
+          </div>
+          <p className="text-gray-600">System management, alerts, and monitoring</p>
+        </div>
+
+        {/* Toast Notification */}
+        {toast.show && (
+          <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg alert-enter ${
+            toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
+            toast.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
+            'bg-yellow-50 text-yellow-800 border border-yellow-200'
+          }`}>
+            <div className="flex items-center gap-2">
+              {toast.type === 'success' && <CheckCircle className="h-5 w-5" />}
+              {toast.type === 'error' && <XCircle className="h-5 w-5" />}
+              {toast.type === 'warning' && <AlertTriangle className="h-5 w-5" />}
+              <span>{toast.message}</span>
+              <button onClick={() => setToast({ show: false, type: '', message: '' })}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Statistics Dashboard */}
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <BarChart className="h-6 w-6 text-gray-700" />
+            <h2 className="text-2xl font-bold text-gray-900">Statistics Dashboard</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* System Uptime */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Activity className="h-8 w-8 text-green-600" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900">{stats.uptime}%</p>
+              <p className="text-sm text-gray-600">System Uptime</p>
+              <p className="text-xs text-gray-500 mt-1">Last 30 days</p>
+            </div>
+
+            {/* Packet Success Rate */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-2">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900">{stats.packetSuccessRate}%</p>
+              <p className="text-sm text-gray-600">Packet Success Rate</p>
+              <p className="text-xs text-gray-500 mt-1">Average across all nodes</p>
+            </div>
+
+            {/* Alert Statistics */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-2">
+                <Bell className="h-8 w-8 text-orange-600" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900">{stats.alertStats.total}</p>
+              <p className="text-sm text-gray-600">Total Alerts</p>
+              <div className="text-xs text-gray-500 mt-1">
+                <span className="text-red-600">Critical: {stats.alertStats.critical}</span>
+                {' | '}
+                <span className="text-yellow-600">Warning: {stats.alertStats.warning}</span>
+                <br />
+                <span>Today: {stats.alertStats.today}</span>
+              </div>
+            </div>
+
+            {/* SMS Delivery Rate */}
+            <div className="bg-white rounded-lg shadow-md p-6 relative">
+              <div className="absolute top-2 right-2">
+                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">Coming soon</span>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <MessageSquare className="h-8 w-8 text-blue-600" />
+              </div>
+              <p className="text-3xl font-bold text-gray-900">{stats.smsDeliveryRate}%</p>
+              <p className="text-sm text-gray-600">SMS Delivery Rate</p>
+              <p className="text-xs text-gray-500 mt-1">Last 100 messages</p>
+            </div>
+          </div>
+
+          {/* Node Health Table */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Node Health Overview</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Node ID</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Last Data</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {Object.entries(nodes).slice(0, 5).map(([nodeId, node]) => {
+                    const status = getNodeStatus(node.lastSeen);
+                    return (
+                      <tr key={nodeId} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          {node.metadata?.name || nodeId}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            status === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            <span className={`w-2 h-2 rounded-full mr-1 ${
+                              status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                            }`}></span>
+                            {status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            node.metadata?.type === 'gateway' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {node.metadata?.type || 'Node'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600">
+                          {formatTimeAgo(node.lastSeen)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Node Management */}
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Users className="h-6 w-6 text-gray-700" />
+            <h2 className="text-2xl font-bold text-gray-900">Node Management</h2>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            {/* Search and Filter */}
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search nodes..."
+                    value={nodeSearchTerm}
+                    onChange={(e) => setNodeSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <select
+                value={nodeSortBy}
+                onChange={(e) => setNodeSortBy(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="name">Sort by Name</option>
+                <option value="status">Sort by Status</option>
+                <option value="lastSeen">Sort by Last Seen</option>
+              </select>
+            </div>
+
+            {/* Nodes Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Node ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {paginatedNodes.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                        No nodes found
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedNodes.map(([nodeId, node]) => {
+                      const status = getNodeStatus(node.lastSeen);
+                      return (
+                        <tr key={nodeId} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm font-mono text-blue-600 cursor-pointer hover:underline">
+                            {nodeId}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            {node.metadata?.name || 'Unnamed'}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              node.metadata?.type === 'gateway' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {node.metadata?.type || 'Node'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              status === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }`}>
+                              <span className={`w-2 h-2 rounded-full mr-1 ${
+                                status === 'online' ? 'bg-green-500' : 'bg-red-500'
+                              }`}></span>
+                              {status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-600">
+                            {formatTimeAgo(node.lastSeen)}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEditNode({ id: nodeId, ...node })}
+                                className="text-blue-600 hover:text-blue-800"
+                                title="Edit"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => confirmDeleteNode(nodeId)}
+                                className="text-red-600 hover:text-red-800"
+                                title="Delete"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => scrollToLogs(nodeId)}
+                                className="text-gray-600 hover:text-gray-800"
+                                title="View Logs"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <p className="text-sm text-gray-600">
+                  Showing {((currentPage - 1) * nodesPerPage) + 1} to {Math.min(currentPage * nodesPerPage, filteredNodes.length)} of {filteredNodes.length} nodes
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  <span className="px-4 py-1 text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Manual Alert Creation */}
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="h-6 w-6 text-gray-700" />
+            <h2 className="text-2xl font-bold text-gray-900">Manual Alert Creation</h2>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <form onSubmit={handleCreateAlert} className="space-y-4">
+              {/* Message */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message *
+                </label>
+                <textarea
+                  value={alertForm.message}
+                  onChange={(e) => setAlertForm(prev => ({ ...prev, message: e.target.value }))}
+                  required
+                  maxLength={500}
+                  rows={4}
+                  placeholder="Enter alert message..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {alertForm.message.length}/500 characters
+                </p>
+              </div>
+
+              {/* Severity */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Severity *
+                </label>
+                <select
+                  value={alertForm.severity}
+                  onChange={(e) => setAlertForm(prev => ({ ...prev, severity: e.target.value }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="warning">⚠️ Warning</option>
+                  <option value="critical">🔴 Critical</option>
+                </select>
+              </div>
+
+              {/* Affected Nodes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Affected Nodes * ({alertForm.affectedNodes.length} selected)
+                </label>
+                <div className="border border-gray-300 rounded-lg p-4">
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={selectAllNodes}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-gray-400">|</span>
+                    <button
+                      type="button"
+                      onClick={deselectAllNodes}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      Deselect All
+                    </button>
+                  </div>
+                  
+                  <div className="mb-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search nodes..."
+                        value={nodeSearchInAlert}
+                        onChange={(e) => setNodeSearchInAlert(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {filteredNodesForAlert.map(([nodeId, node]) => (
+                      <label key={nodeId} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={alertForm.affectedNodes.includes(nodeId)}
+                          onChange={() => toggleNodeSelection(nodeId)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {node.metadata?.name || nodeId}
+                        </span>
+                        <span className="text-xs text-gray-500">({nodeId})</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Recipients */}
+              {recipients.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Recipients ({recipients.length})
+                  </label>
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 max-h-32 overflow-y-auto">
+                    {recipients.map((contact, idx) => (
+                      <div key={idx} className="text-sm text-gray-600 mb-1">
+                        {contact.name} ({contact.phone})
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Send SMS */}
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={alertForm.sendSMS}
+                    onChange={(e) => setAlertForm(prev => ({ ...prev, sendSMS: e.target.checked }))}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Send SMS to recipients</span>
+                </label>
+                {alertForm.sendSMS && recipients.length > 0 && (
+                  <p className="text-xs text-yellow-700 mt-1 ml-6">
+                    ⚠️ This will send SMS to {recipients.length} recipient(s)
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <Bell className="h-4 w-4" />
+                  Create & Send
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAlertForm({ message: '', severity: 'warning', affectedNodes: [], sendSMS: false })}
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        {/* System Logs */}
+        <section className="mb-6" id="system-logs">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="h-6 w-6 text-gray-700" />
+            <h2 className="text-2xl font-bold text-gray-900">System Logs</h2>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Filter className="inline h-4 w-4 mr-1" />
+                  Event Type
+                </label>
+                <select
+                  value={logFilter}
+                  onChange={(e) => setLogFilter(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Events</option>
+                  <option value="registrations">Registrations</option>
+                  <option value="alerts">Alerts</option>
+                  <option value="sms">SMS</option>
+                  <option value="errors">Errors</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="inline h-4 w-4 mr-1" />
+                  Date Range
+                </label>
+                <select
+                  value={logDateRange}
+                  onChange={(e) => setLogDateRange(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="24h">Last 24 Hours</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Search className="inline h-4 w-4 mr-1" />
+                  Search
+                </label>
+                <input
+                  type="text"
+                  value={logSearchTerm}
+                  onChange={(e) => setLogSearchTerm(e.target.value)}
+                  placeholder="Search logs..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-sm text-gray-600">
+                Showing {filteredLogs.length} log{filteredLogs.length !== 1 ? 's' : ''}
+              </p>
+              <button
+                onClick={exportLogsToCSV}
+                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              >
+                <Download className="h-4 w-4" />
+                Export to CSV
+              </button>
+            </div>
+
+            {/* Logs List */}
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {filteredLogs.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No logs available yet
+                </div>
+              ) : (
+                filteredLogs.map(log => (
+                  <div key={log.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div className="flex items-start gap-3">
+                      {getLogIcon(log.type)}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-medium text-gray-900">{getLogTypeLabel(log.type)}</span>
+                          <span className="text-xs text-gray-500">{formatDateTime(log.timestamp)}</span>
+                        </div>
+                        <p className="text-sm text-gray-700">{log.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Data Management */}
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Database className="h-6 w-6 text-gray-700" />
+            <h2 className="text-2xl font-bold text-gray-900">Data Management</h2>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Clean Old Data */}
+              <button
+                onClick={() => setShowCleanupDialog(true)}
+                className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
+              >
+                <Database className="h-6 w-6 text-blue-600 mb-2" />
+                <h3 className="font-semibold text-gray-900 mb-1">Clean Old Data</h3>
+                <p className="text-sm text-gray-600">Remove historical data older than specified days</p>
+              </button>
+
+              {/* Export All Data */}
+              <button
+                onClick={handleExportAllData}
+                className="p-4 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-left"
+              >
+                <Download className="h-6 w-6 text-green-600 mb-2" />
+                <h3 className="font-semibold text-gray-900 mb-1">Export All Data</h3>
+                <p className="text-sm text-gray-600">Download complete database as JSON file</p>
+              </button>
+
+              {/* Import Data */}
+              <label className="p-4 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-left cursor-pointer">
+                <Upload className="h-6 w-6 text-purple-600 mb-2" />
+                <h3 className="font-semibold text-gray-900 mb-1">Import Data</h3>
+                <p className="text-sm text-gray-600">Upload and import historical data</p>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportData}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Manage Contacts */}
+              <a
+                href="/contacts"
+                className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left block"
+              >
+                <Users className="h-6 w-6 text-blue-600 mb-2" />
+                <h3 className="font-semibold text-gray-900 mb-1">Manage Contacts</h3>
+                <p className="text-sm text-gray-600">Add, edit, or remove emergency contacts</p>
+              </a>
+
+              {/* Reset System */}
+              <button
+                onClick={() => setShowResetDialog(true)}
+                className="p-4 border-2 border-red-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-left"
+              >
+                <XCircle className="h-6 w-6 text-red-600 mb-2" />
+                <h3 className="font-semibold text-red-900 mb-1">Reset System</h3>
+                <p className="text-sm text-red-600">⚠️ Delete all data (dangerous)</p>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Edit Node Modal */}
+        {showEditModal && selectedNode && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-900">Edit Node: {selectedNode.id}</h3>
+                  <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      value={selectedNode.metadata?.name || ''}
+                      onChange={(e) => setSelectedNode(prev => ({
+                        ...prev,
+                        metadata: { ...prev.metadata, name: e.target.value }
+                      }))}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <textarea
+                      value={selectedNode.metadata?.description || ''}
+                      onChange={(e) => setSelectedNode(prev => ({
+                        ...prev,
+                        metadata: { ...prev.metadata, description: e.target.value }
+                      }))}
+                      rows={3}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        value={selectedNode.metadata?.latitude || 0}
+                        onChange={(e) => setSelectedNode(prev => ({
+                          ...prev,
+                          metadata: { ...prev.metadata, latitude: e.target.value }
+                        }))}
+                        className="input-field"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        value={selectedNode.metadata?.longitude || 0}
+                        onChange={(e) => setSelectedNode(prev => ({
+                          ...prev,
+                          metadata: { ...prev.metadata, longitude: e.target.value }
+                        }))}
+                        className="input-field"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Altitude (m)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={selectedNode.metadata?.altitude || 0}
+                      onChange={(e) => setSelectedNode(prev => ({
+                        ...prev,
+                        metadata: { ...prev.metadata, altitude: e.target.value }
+                      }))}
+                      className="input-field"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={handleSaveNode}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={() => setShowEditModal(false)}
+                      className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Node Confirmation Dialog */}
+        {showDeleteDialog && nodeToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-red-100 p-2 rounded-full">
+                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Delete Node</h3>
+              </div>
+
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete <strong>{nodeToDelete}</strong>? 
+                This will remove all historical data. This action cannot be undone.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDeleteNode}
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Yes, Delete
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDeleteDialog(false);
+                    setNodeToDelete(null);
+                  }}
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cleanup Data Dialog */}
+        {showCleanupDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Clean Old Data</h3>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Remove data older than:
+                </label>
+                <select
+                  value={cleanupDays}
+                  onChange={(e) => setCleanupDays(parseInt(e.target.value))}
+                  className="input-field"
+                >
+                  <option value="7">7 days</option>
+                  <option value="30">30 days</option>
+                  <option value="90">90 days</option>
+                </select>
+              </div>
+
+              <p className="text-sm text-yellow-700 mb-6 bg-yellow-50 p-3 rounded">
+                ⚠️ This will delete all historical sensor data older than {cleanupDays} days.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCleanupOldData}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Clean Data
+                </button>
+                <button
+                  onClick={() => setShowCleanupDialog(false)}
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Import Data Dialog */}
+        {showImportDialog && importPreview && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Import Data Preview</h3>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Nodes:</span>
+                  <span>{Object.keys(importPreview.nodes || {}).length}</span>
+                </div>
+                <div className="flex justify-between p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Alerts:</span>
+                  <span>{Object.keys(importPreview.alerts || {}).length}</span>
+                </div>
+                <div className="flex justify-between p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Contacts:</span>
+                  <span>{Object.keys(importPreview.contacts || {}).length}</span>
+                </div>
+              </div>
+
+              <p className="text-sm text-yellow-700 mb-6 bg-yellow-50 p-3 rounded">
+                ⚠️ This will overwrite existing data with the imported data.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={confirmImportData}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Confirm Import
+                </button>
+                <button
+                  onClick={() => {
+                    setShowImportDialog(false);
+                    setImportPreview(null);
+                  }}
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reset System Dialog */}
+        {showResetDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-red-100 p-2 rounded-full">
+                  <XCircle className="h-6 w-6 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-red-900">Reset Entire System</h3>
+              </div>
+
+              <p className="text-gray-700 mb-4">
+                <strong className="text-red-600">⚠️ WARNING:</strong> This will delete ALL nodes, alerts, contacts, and settings. 
+                This action cannot be undone.
+              </p>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type <strong>DELETE</strong> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={resetConfirmText}
+                  onChange={(e) => setResetConfirmText(e.target.value)}
+                  placeholder="Type DELETE"
+                  className="input-field"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleResetSystem}
+                  disabled={resetConfirmText !== 'DELETE'}
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Reset System
+                </button>
+                <button
+                  onClick={() => {
+                    setShowResetDialog(false);
+                    setResetConfirmText('');
+                  }}
+                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+

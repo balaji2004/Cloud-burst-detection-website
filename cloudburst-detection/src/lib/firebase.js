@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, get, onValue } from 'firebase/database';
+import { getDatabase, ref, set, get, onValue, update, remove, query, limitToLast } from 'firebase/database';
 
 // Firebase configuration
 // Replace these with your actual Firebase project configuration
@@ -20,4 +20,4 @@ const app = initializeApp(firebaseConfig);
 export const database = getDatabase(app);
 
 // Export Firebase functions for use in components
-export { ref, set, get, onValue };
+export { ref, set, get, onValue, update, remove, query, limitToLast };
