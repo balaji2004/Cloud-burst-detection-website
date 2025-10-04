@@ -24,7 +24,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="bg-white shadow-md sticky top-0 z-50" suppressHydrationWarning={true}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
@@ -48,6 +48,7 @@ export default function Navbar() {
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
+                suppressHydrationWarning={link.href === '/admin'}
               >
                 {link.label}
               </Link>
@@ -84,6 +85,7 @@ export default function Navbar() {
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
+                suppressHydrationWarning={link.href === '/admin'}
               >
                 {link.label}
               </Link>
