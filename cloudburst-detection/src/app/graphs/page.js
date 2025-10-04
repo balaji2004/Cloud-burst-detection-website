@@ -1,14 +1,18 @@
 // src/app/graphs/page.js
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { database, ref, onValue } from '@/lib/firebase';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatDateTime } from '@/lib/utils';
 import { TrendingUp, Calendar, Download } from 'lucide-react';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
-export default function Graphs() {
+// Force dynamic rendering because we use useSearchParams and client-side libraries
+export const dynamic = 'force-dynamic';
+
+function GraphsContent() {
   const searchParams = useSearchParams();
   const nodeParam = searchParams.get('node');
 
@@ -38,7 +42,7 @@ export default function Graphs() {
     });
 
     return () => unsubscribe();
-  }, [nodeParam]);
+  }, [nodeParam, selectedNode]);
 
   useEffect(() => {
     if (!selectedNode || !nodes[selectedNode]) return;
@@ -335,5 +339,13 @@ export default function Graphs() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Graphs() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><LoadingSpinner size="large" /></div>}>
+      <GraphsContent />
+    </Suspense>
   );
 }

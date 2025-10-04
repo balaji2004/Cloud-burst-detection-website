@@ -314,7 +314,7 @@ export default function RegisterNode() {
               </button>
             </div>
             <p className="text-sm text-blue-700 mb-2">
-              Click "Check Now" to see what node IDs are already taken
+              Click &quot;Check Now&quot; to see what node IDs are already taken
             </p>
             
             {existingNodes.length > 0 && (
@@ -330,7 +330,7 @@ export default function RegisterNode() {
                   ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  🟢 = Valid (will show on map) | 🔴 = Missing coordinates (won't show on map)
+                  🟢 = Valid (will show on map) | 🔴 = Missing coordinates (won&apos;t show on map)
                 </p>
               </div>
             )}

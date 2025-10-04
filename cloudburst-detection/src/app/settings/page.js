@@ -202,13 +202,13 @@ export default function SettingsPage() {
     if (!loading) {
       setHasUnsavedChanges(prev => ({ ...prev, thresholds: true }));
     }
-  }, [thresholds]);
+  }, [thresholds, loading]);
 
   useEffect(() => {
     if (!loading) {
       setHasUnsavedChanges(prev => ({ ...prev, system: true }));
     }
-  }, [systemSettings]);
+  }, [systemSettings, loading]);
 
   // Validation functions
   const validateThresholds = () => {

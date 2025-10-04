@@ -56,7 +56,7 @@ export const ToastProvider = ({ children }) => {
     }
 
     return id;
-  }, []);
+  }, [dismissToast]);
 
   /**
    * Dismiss a toast by ID

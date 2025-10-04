@@ -272,7 +272,7 @@ export default function Contacts() {
               {Object.entries(contacts).length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                    No contacts added yet. Click "Add Contact" to get started.
+                    No contacts added yet. Click &quot;Add Contact&quot; to get started.
                   </td>
                 </tr>
               ) : (

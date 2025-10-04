@@ -279,8 +279,8 @@ export default function Prediction() {
                 atmospheric pressure to classify whether a cloudburst event is likely (YES/NO) for the next day (October 5th, 2025).
               </p>
               <p className="text-sm text-gray-600 mt-2">
-                <span className="font-medium">Note:</span> The classification is binary (YES or NO) based on the model's 
-                analysis of weather conditions. Risk levels (High/Medium/Low) are determined by the model's confidence scores. 
+                <span className="font-medium">Note:</span> The classification is binary (YES or NO) based on the model&apos;s 
+                analysis of weather conditions. Risk levels (High/Medium/Low) are determined by the model&apos;s confidence scores. 
                 In a production environment, real-time weather data from Jaynagar would be used for predictions.
               </p>
             </div>

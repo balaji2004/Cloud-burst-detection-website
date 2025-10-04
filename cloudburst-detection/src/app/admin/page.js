@@ -1707,7 +1707,7 @@ export default function AnalyticalPanel() {
                     </label>
                     <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
                       <p className="text-xs text-gray-600 mb-3">
-                        Select nodes that are in communication range or form part of this node's network mesh.
+                        Select nodes that are in communication range or form part of this node&apos;s network mesh.
                         These connections will be visualized as lines on the map.
                       </p>
                       

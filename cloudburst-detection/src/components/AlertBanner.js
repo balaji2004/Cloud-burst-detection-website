@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Info, CheckCircle, AlertTriangle, XCircle, X } from 'lucide-react';
 import { classNames } from '@/utils/classNames';
 
@@ -37,6 +37,14 @@ const AlertBanner = ({
   const [isVisible, setIsVisible] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    setIsAnimating(false);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (onDismiss) onDismiss();
+    }, 300);
+  }, [onDismiss]);
+
   // Auto-dismiss functionality
   useEffect(() => {
     if (autoDismiss && autoDismissDelay) {
@@ -46,20 +54,12 @@ const AlertBanner = ({
       
       return () => clearTimeout(timer);
     }
-  }, [autoDismiss, autoDismissDelay]);
+  }, [autoDismiss, autoDismissDelay, handleDismiss]);
 
   // Start animation on mount
   useEffect(() => {
     setTimeout(() => setIsAnimating(true), 10);
   }, []);
-
-  const handleDismiss = () => {
-    setIsAnimating(false);
-    setTimeout(() => {
-      setIsVisible(false);
-      if (onDismiss) onDismiss();
-    }, 300);
-  };
 
   if (!isVisible) return null;
 
