@@ -45,7 +45,7 @@ const MapPicker = dynamic(() => import('react-leaflet').then(mod => {
   };
 }), { ssr: false });
 
-export default function AdminPanel() {
+export default function AnalyticalPanel() {
   // State management
   const [nodes, setNodes] = useState({});
   const [alerts, setAlerts] = useState([]);
@@ -343,8 +343,8 @@ export default function AdminPanel() {
         sentSMS: alertForm.sendSMS,
         smsSentAt: alertForm.sendSMS ? now : null,
         recipients: recipientPhones,
-        createdBy: 'admin',
-        source: 'admin_panel'
+        createdBy: 'analytical',
+        source: 'analytical_panel'
       };
 
       console.log('📤 Alert data:', alertData);
@@ -733,7 +733,7 @@ export default function AdminPanel() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading admin panel...</p>
+          <p className="text-gray-600">Loading analytical panel...</p>
         </div>
       </div>
     );
@@ -746,7 +746,7 @@ export default function AdminPanel() {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <Shield className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Analytical Panel</h1>
           </div>
           <p className="text-gray-600">System management, alerts, and monitoring</p>
         </div>

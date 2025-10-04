@@ -19,7 +19,7 @@ export default function Navbar() {
     { href: '/alerts', label: 'Alerts' },
     { href: '/graphs', label: 'Data & Graphs' },
     { href: '/settings', label: 'Settings' },
-    { href: '/admin', label: 'Admin' },
+    { href: '/admin', label: 'Analytical Panel' },
     { href: '/about', label: 'About' },
   ];
 

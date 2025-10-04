@@ -16,7 +16,7 @@ import { classNames } from '@/utils/classNames';
  *   description="When alerts are triggered, they will appear here."
  *   action={{
  *     label: "Create Manual Alert",
- *     onClick: () => navigate('/admin'),
+ *     onClick: () => navigate('/admin'), // Still uses /admin URL
  *     icon: Plus
  *   }}
  * />

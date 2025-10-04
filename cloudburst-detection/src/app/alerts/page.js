@@ -55,7 +55,7 @@ export default function Alerts() {
     try {
       await update(ref(database, `alerts/${alertId}`), {
         acknowledged: true,
-        acknowledgedBy: 'admin',
+        acknowledgedBy: 'analytical',
         acknowledgedAt: Date.now()
       });
       setMessage({ type: 'success', text: 'Alert acknowledged' });

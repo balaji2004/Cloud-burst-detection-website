@@ -89,7 +89,7 @@ export default function RegisterNode() {
     const snapshot = await get(nodeRef);
     if (snapshot.exists()) {
       throw new Error(
-        `Node ID "${formData.nodeId}" already exists. Please choose a different ID or delete the existing node from the Admin Panel.`
+        `Node ID "${formData.nodeId}" already exists. Please choose a different ID or delete the existing node from the Analytical Panel.`
       );
     }
 
@@ -284,7 +284,7 @@ export default function RegisterNode() {
                         href="/admin"
                         className="text-sm underline hover:no-underline"
                       >
-                        Open Admin Panel →
+                        Open Analytical Panel →
                       </a>
                       <span className="text-gray-400">|</span>
                       <a

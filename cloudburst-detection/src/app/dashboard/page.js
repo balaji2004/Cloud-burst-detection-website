@@ -144,7 +144,7 @@ export default function DashboardPage() {
             
             if (invalidNodes.length > 0) {
               console.warn(`⚠️ Found ${invalidNodes.length} invalid node(s) - these will not appear on map:`, invalidNodes);
-              console.info('💡 TIP: Delete invalid nodes from Admin Panel and re-register with proper coordinates');
+              console.info('💡 TIP: Delete invalid nodes from Analytical Panel and re-register with proper coordinates');
               console.info('📖 See CHECK_INVALID_NODES.md for detailed troubleshooting');
             }
             
