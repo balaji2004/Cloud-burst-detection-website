@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { Thermometer, Gauge, Droplets, Radio } from 'lucide-react';
 
 // Fix Leaflet's default marker icons for Next.js
@@ -139,26 +139,30 @@ export default function DashboardMap({
           return null;
         }
 
-        return node.metadata.nearbyNodes.map(nearbyNodeId => {
-          const nearbyNode = validNodes.find(n => n?.metadata?.nodeId === nearbyNodeId);
-          if (!nearbyNode) return null;
+        return (
+          <Fragment key={`connections-${node.metadata.nodeId}`}>
+            {node.metadata.nearbyNodes.map(nearbyNodeId => {
+              const nearbyNode = validNodes.find(n => n?.metadata?.nodeId === nearbyNodeId);
+              if (!nearbyNode) return null;
 
-          return (
-            <Polyline
-              key={`${node.metadata.nodeId}-${nearbyNodeId}`}
-              positions={[
-                [Number(node.metadata.latitude), Number(node.metadata.longitude)],
-                [Number(nearbyNode.metadata.latitude), Number(nearbyNode.metadata.longitude)]
-              ]}
-              pathOptions={{
-                color: '#3b82f6',      // blue-500
-                weight: 2,
-                opacity: 0.6,
-                dashArray: '5, 10'
-              }}
-            />
-          );
-        });
+              return (
+                <Polyline
+                  key={`${node.metadata.nodeId}-${nearbyNodeId}`}
+                  positions={[
+                    [Number(node.metadata.latitude), Number(node.metadata.longitude)],
+                    [Number(nearbyNode.metadata.latitude), Number(nearbyNode.metadata.longitude)]
+                  ]}
+                  pathOptions={{
+                    color: '#3b82f6',      // blue-500
+                    weight: 2,
+                    opacity: 0.6,
+                    dashArray: '5, 10'
+                  }}
+                />
+              );
+            })}
+          </Fragment>
+        );
       })}
 
       {/* Render node markers with popups */}
