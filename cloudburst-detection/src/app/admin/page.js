@@ -2,8 +2,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { database, ref, onValue, update, remove, set, query, limitToLast } from '@/lib/firebase';
+import { database, ref, onValue, update, remove, set, query, limitToLast, get } from '@/lib/firebase';
 import { formatTimeAgo, formatDateTime, getNodeStatus, generateId } from '@/lib/utils';
+import { sendSMSNotification, sendInAppNotification, getSMSStatus } from '@/lib/notifications';
 import { 
   Shield, Users, AlertTriangle, FileText, BarChart, Database,
   Edit, Trash2, Eye, Download, Upload, Activity, CheckCircle, 
@@ -57,6 +58,7 @@ export default function AdminPanel() {
     smsDeliveryRate: 94.5
   });
   const [loading, setLoading] = useState(true);
+  const [smsStatus, setSmsStatus] = useState(null);
   
   // Node management state
   const [selectedNode, setSelectedNode] = useState(null);
@@ -99,6 +101,13 @@ export default function AdminPanel() {
 
   // Toast state
   const [toast, setToast] = useState({ show: false, type: '', message: '' });
+
+  // Check SMS configuration status
+  useEffect(() => {
+    const status = getSMSStatus();
+    setSmsStatus(status);
+    console.log('📱 SMS Configuration Status:', status);
+  }, []);
 
   // Load data from Firebase
   useEffect(() => {
@@ -315,8 +324,10 @@ export default function AdminPanel() {
     }
 
     try {
+      console.log('🚨 Creating alert...');
       const alertId = generateId('alert');
       const recipientPhones = recipients.map(c => c.phone);
+      const now = Date.now();
 
       const alertData = {
         id: alertId,
@@ -324,33 +335,116 @@ export default function AdminPanel() {
         severity: alertForm.severity,
         message: alertForm.message,
         affectedNodes: alertForm.affectedNodes,
-        timestamp: Date.now(),
+        timestamp: now,
         acknowledged: false,
+        acknowledgedBy: null,
+        acknowledgedAt: null,
         sentSMS: alertForm.sendSMS,
+        smsSentAt: alertForm.sendSMS ? now : null,
         recipients: recipientPhones,
-        createdBy: 'admin'
+        createdBy: 'admin',
+        source: 'admin_panel'
       };
 
-      await set(ref(database, `alerts/${alertId}`), alertData);
+      console.log('📤 Alert data:', alertData);
 
-      // Note: alertStatus is removed from new structure
-      // Alerts are now tracked separately in the alerts collection
+      // Save alert to Firebase
+      await set(ref(database, `alerts/${alertId}`), alertData);
+      console.log('✅ Alert saved to Firebase with ID:', alertId);
+
+      // Verify alert was saved
+      const verifySnapshot = await get(ref(database, `alerts/${alertId}`));
+      if (!verifySnapshot.exists()) {
+        throw new Error('Alert created but verification failed');
+      }
+      console.log('✅ Alert verified in database');
+
+      // Update affected nodes with alert reference
+      for (const nodeId of alertForm.affectedNodes) {
+        const nodeAlertRef = ref(database, `nodes/${nodeId}/alerts/${alertId}`);
+        await set(nodeAlertRef, {
+          alertId,
+          severity: alertForm.severity,
+          timestamp: now,
+          acknowledged: false
+        });
+        console.log(`✅ Alert linked to node: ${nodeId}`);
+      }
 
       // Log the alert creation
       const logId = generateId('log');
       await set(ref(database, `logs/${logId}`), {
         id: logId,
         type: 'alert_triggered',
-        message: `Manual alert created affecting ${alertForm.affectedNodes.length} node(s)`,
-        timestamp: Date.now(),
-        metadata: { alertId, affectedNodes: alertForm.affectedNodes }
+        message: `Manual alert created affecting ${alertForm.affectedNodes.length} node(s): "${alertForm.message.substring(0, 50)}${alertForm.message.length > 50 ? '...' : ''}"`,
+        timestamp: now,
+        metadata: { 
+          alertId, 
+          affectedNodes: alertForm.affectedNodes,
+          severity: alertForm.severity,
+          recipients: recipientPhones.length
+        }
       });
+      console.log('✅ Alert logged in system logs');
 
-      if (alertForm.sendSMS) {
-        showToast('warning', 'SMS feature coming soon');
+      // Send notifications
+      let smsResult = null;
+      if (alertForm.sendSMS && recipientPhones.length > 0) {
+        console.log('📱 Sending SMS notifications...');
+        smsResult = await sendSMSNotification({
+          recipients: recipientPhones,
+          message: `[${alertForm.severity.toUpperCase()}] ${alertForm.message}`,
+          alertId,
+          severity: alertForm.severity
+        });
+        
+        if (smsResult.success) {
+          console.log('✅ SMS notifications sent successfully');
+          showToast('success', `SMS sent to ${smsResult.recipients} recipient(s)!`);
+        } else if (!smsResult.configured) {
+          console.log('⚠️ SMS service not configured - notification logged');
+          showToast('warning', 'SMS service not configured. Notification logged for future delivery.');
+        } else {
+          console.log('❌ SMS send failed:', smsResult.error);
+          showToast('error', 'Failed to send SMS: ' + smsResult.message);
+        }
+      }
+      
+      // Create in-app notification
+      console.log('🔔 Creating in-app notification...');
+      const inAppResult = await sendInAppNotification({
+        alertId,
+        message: alertForm.message,
+        severity: alertForm.severity,
+        affectedNodes: alertForm.affectedNodes
+      });
+      
+      if (inAppResult.success) {
+        console.log('✅ In-app notification created');
       }
 
-      showToast('success', `Alert created successfully! Recipients: ${recipientPhones.length}`);
+      // Show success message
+      const successMessage = smsResult?.success 
+        ? `Alert created and SMS sent to ${recipientPhones.length} recipient(s)! ${alertForm.affectedNodes.length} node(s) affected.`
+        : `Alert created successfully! ${alertForm.affectedNodes.length} node(s) affected, ${recipientPhones.length} contact(s) identified.`;
+      
+      showToast('success', successMessage);
+
+      // Show option to view alerts
+      setTimeout(() => {
+        const viewAlerts = window.confirm(
+          `Alert created successfully!\n\n` +
+          `ID: ${alertId}\n` +
+          `Severity: ${alertForm.severity.toUpperCase()}\n` +
+          `Affected Nodes: ${alertForm.affectedNodes.length}\n` +
+          `Recipients: ${recipientPhones.length}\n\n` +
+          `Click OK to view all alerts or Cancel to stay here.`
+        );
+        
+        if (viewAlerts) {
+          window.location.href = '/alerts';
+        }
+      }, 500);
       
       // Clear form
       setAlertForm({
@@ -359,7 +453,10 @@ export default function AdminPanel() {
         affectedNodes: [],
         sendSMS: false
       });
+      
+      console.log('🎉 Alert creation complete!');
     } catch (error) {
+      console.error('❌ Failed to create alert:', error);
       showToast('error', `Failed to create alert: ${error.message}`);
     }
   };
@@ -939,12 +1036,70 @@ export default function AdminPanel() {
 
         {/* Manual Alert Creation */}
         <section className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="h-6 w-6 text-gray-700" />
-            <h2 className="text-2xl font-bold text-gray-900">Manual Alert Creation</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-6 w-6 text-gray-700" />
+              <h2 className="text-2xl font-bold text-gray-900">Manual Alert Creation</h2>
+            </div>
+            <a
+              href="/alerts"
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors shadow-md hover:shadow-lg"
+            >
+              <Bell className="h-4 w-4" />
+              View All Alerts ({alerts.length})
+            </a>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6">
+            {/* Info Box */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <Bell className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900 mb-1">How Alerts Work</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>✅ Alerts are saved to Firebase database instantly</li>
+                    <li>✅ All affected nodes will be linked to this alert</li>
+                    <li>✅ Emergency contacts for selected nodes will be identified</li>
+                    <li>✅ In-app notifications created for dashboard</li>
+                    <li>✅ View all alerts on the <a href="/alerts" className="underline font-semibold">Alerts Page</a></li>
+                  </ul>
+                  
+                  {/* SMS Status */}
+                  <div className="mt-3 pt-3 border-t border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="font-semibold text-blue-900">SMS Notification Status:</span>
+                    </div>
+                    {smsStatus && (
+                      <div className="text-sm">
+                        {smsStatus.configured ? (
+                          <div className="flex items-center gap-2 text-green-700">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>✅ SMS service is configured and ready</span>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="flex items-center gap-2 text-orange-700 mb-2">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span>⚠️ SMS service not configured</span>
+                            </div>
+                            <div className="bg-orange-50 border border-orange-200 rounded p-2 text-orange-800">
+                              <p className="font-semibold mb-1">SMS notifications will be logged only</p>
+                              <p className="text-xs">To enable actual SMS sending, configure Twilio in your environment variables.</p>
+                              <p className="text-xs mt-1">
+                                See <code className="bg-orange-100 px-1 rounded">SMS_SETUP_GUIDE.md</code> for instructions
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <form onSubmit={handleCreateAlert} className="space-y-4">
               {/* Message */}
               <div>
@@ -1074,18 +1229,25 @@ export default function AdminPanel() {
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md hover:shadow-lg"
                 >
                   <Bell className="h-4 w-4" />
-                  Create & Send
+                  Create & Send Alert
                 </button>
                 <button
                   type="button"
                   onClick={() => setAlertForm({ message: '', severity: 'warning', affectedNodes: [], sendSMS: false })}
                   className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Reset
+                  Reset Form
                 </button>
+                <a
+                  href="/alerts"
+                  className="bg-orange-100 text-orange-700 px-6 py-2 rounded-lg hover:bg-orange-200 transition-colors flex items-center gap-2 border border-orange-300"
+                >
+                  <Eye className="h-4 w-4" />
+                  View Alerts Page
+                </a>
               </div>
             </form>
           </div>
