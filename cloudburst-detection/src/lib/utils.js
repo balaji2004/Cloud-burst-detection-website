@@ -26,13 +26,22 @@ export const formatDateTime = (timestamp) => {
 };
 
 /**
- * Determine node status based on last seen time
+ * Determine node status based on last update time
+ * Accepts either a timestamp (milliseconds) or Unix timestamp string (seconds)
  */
-export const getNodeStatus = (lastSeen) => {
-  if (!lastSeen) return 'offline';
+export const getNodeStatus = (lastUpdate) => {
+  if (!lastUpdate) return 'offline';
+  
+  // Convert Unix timestamp (string in seconds) to milliseconds if needed
+  let lastUpdateMs;
+  if (typeof lastUpdate === 'string') {
+    lastUpdateMs = parseInt(lastUpdate) * 1000;
+  } else {
+    lastUpdateMs = lastUpdate;
+  }
   
   const now = Date.now();
-  const diff = now - lastSeen;
+  const diff = now - lastUpdateMs;
   
   // Online if seen in last 5 minutes
   if (diff < 5 * 60 * 1000) return 'online';

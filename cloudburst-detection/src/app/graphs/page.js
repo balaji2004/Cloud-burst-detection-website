@@ -49,11 +49,23 @@ export default function Graphs() {
       const data = snapshot.val() || {};
       
       // Convert to array and sort by timestamp
-      const dataArray = Object.entries(data).map(([timestamp, values]) => ({
-        timestamp: parseInt(timestamp),
-        ...values.sensors,
-        rssi: values.rssi
-      })).sort((a, b) => a.timestamp - b.timestamp);
+      // New structure: history/{auto-key}/{temperature, pressure, altitude, humidity, rssi, timestamp}
+      const dataArray = Object.entries(data).map(([key, values]) => {
+        // Handle timestamp: convert to milliseconds if it's in seconds (Unix timestamp)
+        const timestamp = typeof values.timestamp === 'string'
+          ? parseInt(values.timestamp) * 1000  // Convert Unix timestamp (seconds) to milliseconds
+          : values.timestamp;
+        
+        return {
+          timestamp,
+          temperature: values.temperature,
+          pressure: values.pressure,
+          altitude: values.altitude,
+          humidity: values.humidity,
+          rainfall: values.rainfall,
+          rssi: values.rssi
+        };
+      }).sort((a, b) => a.timestamp - b.timestamp);
 
       // Filter by time range
       const now = Date.now();

@@ -8,8 +8,41 @@ import {
   Shield, Users, AlertTriangle, FileText, BarChart, Database,
   Edit, Trash2, Eye, Download, Upload, Activity, CheckCircle, 
   Bell, MessageSquare, Search, X, ChevronLeft, ChevronRight,
-  Plus, Filter, Calendar, XCircle
+  Plus, Filter, Calendar, XCircle, Navigation, MapPin, Locate
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamically import MapContainer for coordinate picker
+const MapPicker = dynamic(() => import('react-leaflet').then(mod => {
+  const { MapContainer, TileLayer, Marker, useMapEvents } = mod;
+  
+  function LocationMarker({ position, setPosition }) {
+    useMapEvents({
+      click(e) {
+        setPosition(e.latlng);
+      },
+    });
+    
+    return position ? <Marker position={position} /> : null;
+  }
+  
+  return function MapPickerComponent({ position, setPosition }) {
+    return (
+      <MapContainer
+        center={position || [20.5937, 78.9629]}
+        zoom={position ? 13 : 5}
+        style={{ height: '400px', width: '100%' }}
+        className="rounded-lg"
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <LocationMarker position={position} setPosition={setPosition} />
+      </MapContainer>
+    );
+  };
+}), { ssr: false });
 
 export default function AdminPanel() {
   // State management
@@ -34,6 +67,11 @@ export default function AdminPanel() {
   const [nodeSortBy, setNodeSortBy] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
   const nodesPerPage = 10;
+  
+  // Edit modal coordinate capture state
+  const [coordinateCaptureMethod, setCoordinateCaptureMethod] = useState('manual'); // 'manual', 'gps', 'map'
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [mapPickerPosition, setMapPickerPosition] = useState(null);
 
   // Alert form state
   const [alertForm, setAlertForm] = useState({
@@ -147,7 +185,58 @@ export default function AdminPanel() {
   // Node Management Functions
   const handleEditNode = (node) => {
     setSelectedNode(node);
+    setCoordinateCaptureMethod('manual');
+    setMapPickerPosition(
+      node.metadata?.latitude && node.metadata?.longitude
+        ? { lat: parseFloat(node.metadata.latitude), lng: parseFloat(node.metadata.longitude) }
+        : null
+    );
     setShowEditModal(true);
+  };
+
+  const handleGPSCapture = () => {
+    if (!navigator.geolocation) {
+      showToast('error', 'Geolocation is not supported by your browser');
+      return;
+    }
+
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        setSelectedNode(prev => ({
+          ...prev,
+          metadata: { 
+            ...prev.metadata, 
+            latitude: lat,
+            longitude: lon
+          }
+        }));
+        
+        setMapPickerPosition({ lat, lng: lon });
+        showToast('success', `GPS coordinates captured: ${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+        setGpsLoading(false);
+      },
+      (error) => {
+        showToast('error', 'GPS capture failed: ' + error.message);
+        setGpsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleMapPositionChange = (latlng) => {
+    setMapPickerPosition(latlng);
+    setSelectedNode(prev => ({
+      ...prev,
+      metadata: { 
+        ...prev.metadata, 
+        latitude: latlng.lat,
+        longitude: latlng.lng
+      }
+    }));
   };
 
   const handleSaveNode = async () => {
@@ -244,12 +333,8 @@ export default function AdminPanel() {
 
       await set(ref(database, `alerts/${alertId}`), alertData);
 
-      // Update alertStatus for each affected node
-      for (const nodeId of alertForm.affectedNodes) {
-        await update(ref(database, `nodes/${nodeId}`), {
-          alertStatus: alertForm.severity
-        });
-      }
+      // Note: alertStatus is removed from new structure
+      // Alerts are now tracked separately in the alerts collection
 
       // Log the alert creation
       const logId = generateId('log');
@@ -492,9 +577,11 @@ export default function AdminPanel() {
         case 'name':
           return (a.metadata?.name || aId).localeCompare(b.metadata?.name || bId);
         case 'status':
-          return getNodeStatus(b.lastSeen).localeCompare(getNodeStatus(a.lastSeen));
+          return getNodeStatus(b.realtime?.lastUpdate).localeCompare(getNodeStatus(a.realtime?.lastUpdate));
         case 'lastSeen':
-          return (b.lastSeen || 0) - (a.lastSeen || 0);
+          const aTime = a.realtime?.lastUpdate ? (typeof a.realtime.lastUpdate === 'string' ? parseInt(a.realtime.lastUpdate) * 1000 : a.realtime.lastUpdate) : 0;
+          const bTime = b.realtime?.lastUpdate ? (typeof b.realtime.lastUpdate === 'string' ? parseInt(b.realtime.lastUpdate) * 1000 : b.realtime.lastUpdate) : 0;
+          return bTime - aTime;
         default:
           return 0;
       }
@@ -658,7 +745,12 @@ export default function AdminPanel() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {Object.entries(nodes).slice(0, 5).map(([nodeId, node]) => {
-                    const status = getNodeStatus(node.lastSeen);
+                    const status = getNodeStatus(node.realtime?.lastUpdate);
+                    const lastUpdateTime = node.realtime?.lastUpdate 
+                      ? (typeof node.realtime.lastUpdate === 'string' 
+                          ? parseInt(node.realtime.lastUpdate) * 1000 
+                          : node.realtime.lastUpdate)
+                      : null;
                     return (
                       <tr key={nodeId} className="hover:bg-gray-50">
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
@@ -682,7 +774,7 @@ export default function AdminPanel() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {formatTimeAgo(node.lastSeen)}
+                          {formatTimeAgo(lastUpdateTime)}
                         </td>
                       </tr>
                     );
@@ -748,7 +840,12 @@ export default function AdminPanel() {
                     </tr>
                   ) : (
                     paginatedNodes.map(([nodeId, node]) => {
-                      const status = getNodeStatus(node.lastSeen);
+                      const status = getNodeStatus(node.realtime?.lastUpdate);
+                      const lastUpdateTime = node.realtime?.lastUpdate 
+                        ? (typeof node.realtime.lastUpdate === 'string' 
+                            ? parseInt(node.realtime.lastUpdate) * 1000 
+                            : node.realtime.lastUpdate)
+                        : null;
                       return (
                         <tr key={nodeId} className="hover:bg-gray-50">
                           <td className="px-4 py-3 text-sm font-mono text-blue-600 cursor-pointer hover:underline">
@@ -775,7 +872,7 @@ export default function AdminPanel() {
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-600">
-                            {formatTimeAgo(node.lastSeen)}
+                            {formatTimeAgo(lastUpdateTime)}
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <div className="flex gap-2">
@@ -1134,6 +1231,25 @@ export default function AdminPanel() {
                 />
               </label>
 
+              {/* Load Sample Data */}
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/firebase-sample-data.json');
+                    const sampleData = await response.json();
+                    setImportPreview(sampleData);
+                    setShowImportDialog(true);
+                  } catch (error) {
+                    showToast('error', 'Failed to load sample data: ' + error.message);
+                  }
+                }}
+                className="p-4 border-2 border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all text-left"
+              >
+                <Database className="h-6 w-6 text-yellow-600 mb-2" />
+                <h3 className="font-semibold text-gray-900 mb-1">Load Sample Data</h3>
+                <p className="text-sm text-gray-600">Import demo nodes for testing</p>
+              </button>
+
               {/* Manage Contacts */}
               <a
                 href="/contacts"
@@ -1196,35 +1312,160 @@ export default function AdminPanel() {
                     />
                   </div>
 
+                  {/* Coordinate Capture Method */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      📍 Location Capture Method
+                    </label>
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setCoordinateCaptureMethod('manual')}
+                        className={`flex-1 px-4 py-2.5 rounded-lg border transition-all ${
+                          coordinateCaptureMethod === 'manual'
+                            ? 'bg-blue-100 border-blue-500 text-blue-700 font-semibold'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <MapPin className="inline h-4 w-4 mr-2" />
+                        Manual Entry
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCoordinateCaptureMethod('gps');
+                          handleGPSCapture();
+                        }}
+                        disabled={gpsLoading}
+                        className={`flex-1 px-4 py-2.5 rounded-lg border transition-all ${
+                          coordinateCaptureMethod === 'gps'
+                            ? 'bg-green-100 border-green-500 text-green-700 font-semibold'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        <Navigation className="inline h-4 w-4 mr-2" />
+                        {gpsLoading ? 'Getting GPS...' : 'Use GPS'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCoordinateCaptureMethod('map')}
+                        className={`flex-1 px-4 py-2.5 rounded-lg border transition-all ${
+                          coordinateCaptureMethod === 'map'
+                            ? 'bg-purple-100 border-purple-500 text-purple-700 font-semibold'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <Locate className="inline h-4 w-4 mr-2" />
+                        Pick on Map
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Map Picker (shown when map method is selected) */}
+                  {coordinateCaptureMethod === 'map' && (
+                    <div className="mb-4">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                        <p className="text-sm text-blue-800">
+                          <Locate className="inline h-4 w-4 mr-1" />
+                          <strong>Click anywhere on the map</strong> to set coordinates
+                        </p>
+                      </div>
+                      <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
+                        <MapPicker 
+                          position={mapPickerPosition}
+                          setPosition={handleMapPositionChange}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Click on the map to select the exact location for this node
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Coordinate Inputs */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Latitude
+                        {mapPickerPosition && (
+                          <span className="ml-2 text-xs text-green-600">
+                            ✓ {coordinateCaptureMethod === 'gps' ? 'GPS' : coordinateCaptureMethod === 'map' ? 'Map' : ''}
+                          </span>
+                        )}
+                      </label>
                       <input
                         type="number"
                         step="0.000001"
                         value={selectedNode.metadata?.latitude || 0}
-                        onChange={(e) => setSelectedNode(prev => ({
-                          ...prev,
-                          metadata: { ...prev.metadata, latitude: e.target.value }
-                        }))}
-                        className="input-field"
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          setSelectedNode(prev => ({
+                            ...prev,
+                            metadata: { ...prev.metadata, latitude: e.target.value }
+                          }));
+                          if (!isNaN(val) && selectedNode.metadata?.longitude) {
+                            setMapPickerPosition({ 
+                              lat: val, 
+                              lng: parseFloat(selectedNode.metadata.longitude) 
+                            });
+                          }
+                        }}
+                        className="input-field font-mono"
+                        placeholder="e.g., 28.613900"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Range: -90 to 90</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Longitude
+                        {mapPickerPosition && (
+                          <span className="ml-2 text-xs text-green-600">
+                            ✓ {coordinateCaptureMethod === 'gps' ? 'GPS' : coordinateCaptureMethod === 'map' ? 'Map' : ''}
+                          </span>
+                        )}
+                      </label>
                       <input
                         type="number"
                         step="0.000001"
                         value={selectedNode.metadata?.longitude || 0}
-                        onChange={(e) => setSelectedNode(prev => ({
-                          ...prev,
-                          metadata: { ...prev.metadata, longitude: e.target.value }
-                        }))}
-                        className="input-field"
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          setSelectedNode(prev => ({
+                            ...prev,
+                            metadata: { ...prev.metadata, longitude: e.target.value }
+                          }));
+                          if (!isNaN(val) && selectedNode.metadata?.latitude) {
+                            setMapPickerPosition({ 
+                              lat: parseFloat(selectedNode.metadata.latitude), 
+                              lng: val 
+                            });
+                          }
+                        }}
+                        className="input-field font-mono"
+                        placeholder="e.g., 77.209000"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Range: -180 to 180</p>
                     </div>
                   </div>
+
+                  {/* Current Coordinates Display */}
+                  {selectedNode.metadata?.latitude && selectedNode.metadata?.longitude && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Current Coordinates:</p>
+                      <p className="text-sm font-mono text-gray-900">
+                        {parseFloat(selectedNode.metadata.latitude).toFixed(6)}, {parseFloat(selectedNode.metadata.longitude).toFixed(6)}
+                      </p>
+                      <a
+                        href={`https://www.google.com/maps?q=${selectedNode.metadata.latitude},${selectedNode.metadata.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                      >
+                        View on Google Maps →
+                      </a>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Altitude (m)</label>
@@ -1440,4 +1681,5 @@ export default function AdminPanel() {
     </div>
   );
 }
+
 

@@ -22,6 +22,7 @@ export default function RegisterNode() {
   const [captureMethod, setCaptureMethod] = useState('manual'); // manual, gps, map
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [existingNodes, setExistingNodes] = useState([]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,12 +54,43 @@ export default function RegisterNode() {
     );
   };
 
+  const checkExistingNodes = async () => {
+    try {
+      setLoading(true);
+      const nodesRef = ref(database, 'nodes');
+      const snapshot = await get(nodesRef);
+      
+      if (snapshot.exists()) {
+        const nodes = snapshot.val();
+        const nodeList = Object.keys(nodes).map(nodeId => ({
+          id: nodeId,
+          name: nodes[nodeId].metadata?.name || 'Unknown',
+          hasCoordinates: !!(nodes[nodeId].metadata?.latitude && nodes[nodeId].metadata?.longitude)
+        }));
+        setExistingNodes(nodeList);
+        setMessage({ 
+          type: 'info', 
+          text: `Found ${nodeList.length} existing node(s). Make sure to use a unique ID.` 
+        });
+      } else {
+        setExistingNodes([]);
+        setMessage({ type: 'success', text: 'No existing nodes found. You can use any ID!' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to check existing nodes: ' + error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const validateForm = async () => {
     // Check if node ID already exists
     const nodeRef = ref(database, `nodes/${formData.nodeId}`);
     const snapshot = await get(nodeRef);
     if (snapshot.exists()) {
-      throw new Error('Node ID already exists. Please choose a different ID.');
+      throw new Error(
+        `Node ID "${formData.nodeId}" already exists. Please choose a different ID or delete the existing node from the Admin Panel.`
+      );
     }
 
     // Validate required fields
@@ -66,13 +98,34 @@ export default function RegisterNode() {
       throw new Error('Node ID and Name are required');
     }
 
-    // Validate coordinates
-    if (!isValidLatitude(formData.latitude)) {
-      throw new Error('Invalid latitude. Must be between -90 and 90');
+    // Validate coordinates are provided
+    if (!formData.latitude || formData.latitude === '') {
+      throw new Error('Latitude is required. Please enter a valid latitude value.');
     }
 
-    if (!isValidLongitude(formData.longitude)) {
-      throw new Error('Invalid longitude. Must be between -180 and 180');
+    if (!formData.longitude || formData.longitude === '') {
+      throw new Error('Longitude is required. Please enter a valid longitude value.');
+    }
+
+    // Validate coordinates are valid numbers
+    const lat = parseFloat(formData.latitude);
+    const lon = parseFloat(formData.longitude);
+
+    if (isNaN(lat)) {
+      throw new Error(`Invalid latitude value: "${formData.latitude}". Must be a number.`);
+    }
+
+    if (isNaN(lon)) {
+      throw new Error(`Invalid longitude value: "${formData.longitude}". Must be a number.`);
+    }
+
+    // Validate coordinate ranges
+    if (!isValidLatitude(lat)) {
+      throw new Error(`Latitude ${lat} is out of range. Must be between -90 and 90.`);
+    }
+
+    if (!isValidLongitude(lon)) {
+      throw new Error(`Longitude ${lon} is out of range. Must be between -180 and 180.`);
     }
 
     return true;
@@ -92,14 +145,33 @@ export default function RegisterNode() {
         .map(id => id.trim())
         .filter(id => id.length > 0);
 
+      // Parse and verify coordinates
+      const latitude = parseFloat(formData.latitude);
+      const longitude = parseFloat(formData.longitude);
+      const altitude = formData.altitude ? parseFloat(formData.altitude) : null;
+
+      // Double-check parsing was successful
+      if (isNaN(latitude) || isNaN(longitude)) {
+        throw new Error('Failed to parse coordinates. Please ensure they are valid numbers.');
+      }
+
+      console.log('🔧 Registering node with coordinates:', {
+        nodeId: formData.nodeId,
+        latitude,
+        longitude,
+        altitude,
+        latitudeType: typeof latitude,
+        longitudeType: typeof longitude
+      });
+
       // Prepare metadata
       const metadata = {
         nodeId: formData.nodeId,
         type: formData.type,
         name: formData.name,
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
-        altitude: formData.altitude ? parseFloat(formData.altitude) : null,
+        latitude: latitude,  // Guaranteed to be a number
+        longitude: longitude,  // Guaranteed to be a number
+        altitude: altitude,
         installedDate: new Date().toISOString(),
         installedBy: formData.installedBy || 'Unknown',
         description: formData.description || '',
@@ -108,32 +180,62 @@ export default function RegisterNode() {
         createdAt: Date.now(),
       };
 
-      // Initialize realtime data structure
+      // Initialize realtime data structure (new Firebase structure)
       const realtime = {
         temperature: 0,
         pressure: 0,
-        altitude: formData.altitude ? parseFloat(formData.altitude) : 0,
+        altitude: altitude || 0,
         humidity: formData.type === 'gateway' ? 0 : null,
-        rainfall: null,
         rssi: formData.type === 'gateway' ? null : 0,
-        batteryLevel: null,
-        timestamp: Date.now(),
-        lastSeen: 0,
         status: 'offline',
-        alertStatus: 'normal',
-        messageCount: 0,
+        lastUpdate: Math.floor(Date.now() / 1000).toString()  // Unix timestamp in seconds as string
       };
 
-      // Save to Firebase
-      await set(ref(database, `nodes/${formData.nodeId}`), {
+      const nodeData = {
         metadata,
         realtime,
         history: {}
-      });
+      };
+
+      console.log('💾 Saving to Firebase:', nodeData);
+
+      // Save to Firebase
+      await set(ref(database, `nodes/${formData.nodeId}`), nodeData);
+
+      // Verify the data was saved correctly
+      const verifySnapshot = await get(ref(database, `nodes/${formData.nodeId}`));
+      if (verifySnapshot.exists()) {
+        const savedData = verifySnapshot.val();
+        console.log('✅ Verification - Data saved successfully:', savedData);
+        
+        if (!savedData.metadata.latitude || !savedData.metadata.longitude) {
+          console.error('❌ WARNING: Coordinates missing in saved data!', savedData.metadata);
+          throw new Error('Data saved but coordinates are missing. Please try again.');
+        }
+
+        if (typeof savedData.metadata.latitude !== 'number' || typeof savedData.metadata.longitude !== 'number') {
+          console.error('❌ WARNING: Coordinates are not numbers!', {
+            latitude: savedData.metadata.latitude,
+            longitude: savedData.metadata.longitude,
+            latType: typeof savedData.metadata.latitude,
+            lonType: typeof savedData.metadata.longitude
+          });
+          throw new Error('Data saved but coordinates are not in correct format. Please try again.');
+        }
+
+        console.log('✅ Coordinates verified:', {
+          latitude: savedData.metadata.latitude,
+          longitude: savedData.metadata.longitude,
+          latType: typeof savedData.metadata.latitude,
+          lonType: typeof savedData.metadata.longitude
+        });
+      } else {
+        throw new Error('Failed to verify saved data. Please check Firebase connection.');
+      }
 
       setMessage({ 
         type: 'success', 
-        text: `Node "${formData.name}" registered successfully!` 
+        text: `Node "${formData.name}" registered successfully with coordinates (${latitude.toFixed(4)}, ${longitude.toFixed(4)})!` 
       });
 
       // Reset form
@@ -169,11 +271,70 @@ export default function RegisterNode() {
             <div className={`p-4 rounded-lg mb-6 ${
               message.type === 'success' 
                 ? 'bg-green-50 text-green-800 border border-green-200' 
+                : message.type === 'info'
+                ? 'bg-blue-50 text-blue-800 border border-blue-200'
                 : 'bg-red-50 text-red-800 border border-red-200'
             }`}>
-              {message.text}
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  {message.text}
+                  {message.type === 'error' && message.text.includes('already exists') && (
+                    <div className="mt-3 flex gap-2">
+                      <a
+                        href="/admin"
+                        className="text-sm underline hover:no-underline"
+                      >
+                        Open Admin Panel →
+                      </a>
+                      <span className="text-gray-400">|</span>
+                      <a
+                        href="/dashboard"
+                        className="text-sm underline hover:no-underline"
+                      >
+                        View Dashboard →
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
+
+          {/* Existing Nodes Info */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-blue-900">Check Existing Nodes</h3>
+              <button
+                type="button"
+                onClick={checkExistingNodes}
+                disabled={loading}
+                className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {loading ? 'Checking...' : 'Check Now'}
+              </button>
+            </div>
+            <p className="text-sm text-blue-700 mb-2">
+              Click "Check Now" to see what node IDs are already taken
+            </p>
+            
+            {existingNodes.length > 0 && (
+              <div className="mt-3 bg-white rounded p-3 max-h-32 overflow-y-auto">
+                <p className="text-xs font-semibold text-gray-600 mb-2">Existing Node IDs:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {existingNodes.map((node) => (
+                    <div key={node.id} className="text-sm flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${node.hasCoordinates ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                      <span className="font-mono text-gray-900">{node.id}</span>
+                      <span className="text-xs text-gray-500">({node.name})</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  🟢 = Valid (will show on map) | 🔴 = Missing coordinates (won't show on map)
+                </p>
+              </div>
+            )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Node ID and Type */}
@@ -191,7 +352,15 @@ export default function RegisterNode() {
                   placeholder="e.g., node1, node2, gateway"
                   className="input-field"
                 />
-                <p className="text-xs text-gray-500 mt-1">Unique identifier for this node</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Unique identifier for this node
+                  {existingNodes.length > 0 && (
+                    <span className="text-orange-600 font-semibold">
+                      {' '}(Avoid: {existingNodes.slice(0, 3).map(n => n.id).join(', ')}
+                      {existingNodes.length > 3 && '...'})
+                    </span>
+                  )}
+                </p>
               </div>
 
               <div>

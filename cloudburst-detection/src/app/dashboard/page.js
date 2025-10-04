@@ -51,22 +51,103 @@ export default function DashboardPage() {
    */
   useEffect(() => {
     console.log('🔥 Initializing Firebase listener...');
-
+    
     const nodesRef = ref(database, 'nodes');
 
     const unsubscribe = onValue(
-      nodesRef,
+      nodesRef, 
       (snapshot) => {
         try {
           const data = snapshot.val();
           console.log('📦 Firebase data received:', data);
 
           if (data) {
-            // Convert object to array and validate structure
-            const nodeArray = Object.values(data).filter(
-              node => node.metadata && node.metadata.latitude && node.metadata.longitude
-            );
+            // Convert object to array and validate structure with detailed logging
+            const allNodes = Object.entries(data);
+            console.log(`🔍 Total nodes in database: ${allNodes.length}`);
+            
+            const nodeArray = [];
+            const invalidNodes = [];
+
+            allNodes.forEach(([nodeId, node]) => {
+              // Check if node has required structure
+              if (!node.metadata) {
+                console.warn(`⚠️ Node "${nodeId}" missing metadata object`);
+                invalidNodes.push({ nodeId, reason: 'Missing metadata' });
+                return;
+              }
+
+              // Check latitude
+              if (!node.metadata.latitude && node.metadata.latitude !== 0) {
+                console.warn(`⚠️ Node "${nodeId}" missing latitude`, node.metadata);
+                invalidNodes.push({ nodeId, reason: 'Missing latitude', metadata: node.metadata });
+                return;
+              }
+
+              // Check longitude
+              if (!node.metadata.longitude && node.metadata.longitude !== 0) {
+                console.warn(`⚠️ Node "${nodeId}" missing longitude`, node.metadata);
+                invalidNodes.push({ nodeId, reason: 'Missing longitude', metadata: node.metadata });
+                return;
+              }
+
+              // Validate coordinate types
+              if (typeof node.metadata.latitude !== 'number') {
+                console.warn(`⚠️ Node "${nodeId}" latitude is not a number:`, {
+                  value: node.metadata.latitude,
+                  type: typeof node.metadata.latitude
+                });
+                invalidNodes.push({ 
+                  nodeId, 
+                  reason: `Latitude is ${typeof node.metadata.latitude}, not number`,
+                  value: node.metadata.latitude 
+                });
+                return;
+              }
+
+              if (typeof node.metadata.longitude !== 'number') {
+                console.warn(`⚠️ Node "${nodeId}" longitude is not a number:`, {
+                  value: node.metadata.longitude,
+                  type: typeof node.metadata.longitude
+                });
+                invalidNodes.push({ 
+                  nodeId, 
+                  reason: `Longitude is ${typeof node.metadata.longitude}, not number`,
+                  value: node.metadata.longitude 
+                });
+                return;
+              }
+
+              // Validate coordinate ranges
+              if (node.metadata.latitude < -90 || node.metadata.latitude > 90) {
+                console.warn(`⚠️ Node "${nodeId}" latitude out of range: ${node.metadata.latitude}`);
+                invalidNodes.push({ nodeId, reason: 'Latitude out of range', value: node.metadata.latitude });
+                return;
+              }
+
+              if (node.metadata.longitude < -180 || node.metadata.longitude > 180) {
+                console.warn(`⚠️ Node "${nodeId}" longitude out of range: ${node.metadata.longitude}`);
+                invalidNodes.push({ nodeId, reason: 'Longitude out of range', value: node.metadata.longitude });
+                return;
+              }
+
+              // Node is valid!
+              console.log(`✅ Node "${nodeId}" is valid:`, {
+                lat: node.metadata.latitude,
+                lon: node.metadata.longitude,
+                name: node.metadata.name
+              });
+              nodeArray.push(node);
+            });
+
             console.log(`✅ Processed ${nodeArray.length} valid nodes`);
+            
+            if (invalidNodes.length > 0) {
+              console.warn(`⚠️ Found ${invalidNodes.length} invalid node(s) - these will not appear on map:`, invalidNodes);
+              console.info('💡 TIP: Delete invalid nodes from Admin Panel and re-register with proper coordinates');
+              console.info('📖 See CHECK_INVALID_NODES.md for detailed troubleshooting');
+            }
+            
             setNodes(nodeArray);
           } else {
             console.log('⚠️ No nodes found in database');
@@ -95,19 +176,25 @@ export default function DashboardPage() {
   }, []);
 
   /**
-   * Determines node status based on last seen timestamp and alert status
+   * Determines node status based on last update timestamp
    * @param {Object} node - Node object with realtime data
    * @returns {string} 'online', 'offline', or 'warning'
    */
   const getNodeStatus = (node) => {
-    if (!node.realtime || !node.realtime.lastSeen) return 'offline';
+    if (!node.realtime || !node.realtime.lastUpdate) return 'offline';
 
-    // Check if node has critical alert
-    if (node.realtime.alertStatus === 'critical') return 'warning';
+    // Check if node status is explicitly set (from new structure)
+    if (node.realtime.status === 'offline') return 'offline';
+    if (node.realtime.status === 'online') {
+      // Verify it's actually online (last update within 5 minutes)
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      const lastUpdateMs = typeof node.realtime.lastUpdate === 'string' 
+        ? parseInt(node.realtime.lastUpdate) * 1000  // Convert Unix timestamp to milliseconds
+        : node.realtime.lastUpdate;
+      return lastUpdateMs > fiveMinutesAgo ? 'online' : 'offline';
+    }
 
-    // Check if node is online (last seen within 5 minutes)
-    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
-    return node.realtime.lastSeen > fiveMinutesAgo ? 'online' : 'offline';
+    return 'offline';
   };
 
   /**
@@ -349,9 +436,9 @@ export default function DashboardPage() {
                         {selectedNode.metadata.altitude.toFixed(1)} meters
                       </p>
                     </div>
-                  </div>
-                )}
-
+        </div>
+      )}
+      
                 {/* Installed By */}
                 {selectedNode.metadata.installedBy && (
                   <div className="flex items-start gap-3">
@@ -372,7 +459,7 @@ export default function DashboardPage() {
                     <p className="text-sm text-gray-700 leading-relaxed">
                       {selectedNode.metadata.description}
                     </p>
-                  </div>
+        </div>
                 )}
               </div>
             </div>
@@ -382,7 +469,13 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Clock className="w-4 h-4" />
                 <span className="font-medium">Last Updated:</span>
-                <span>{formatTimestamp(selectedNode.realtime?.lastSeen)}</span>
+                <span>{formatTimestamp(
+                  selectedNode.realtime?.lastUpdate 
+                    ? (typeof selectedNode.realtime.lastUpdate === 'string' 
+                        ? parseInt(selectedNode.realtime.lastUpdate) * 1000 
+                        : selectedNode.realtime.lastUpdate)
+                    : null
+                )}</span>
               </div>
             </div>
 

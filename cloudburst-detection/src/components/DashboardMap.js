@@ -2,21 +2,17 @@
 
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Thermometer, Gauge, Droplets, Radio } from 'lucide-react';
 
 // Fix Leaflet's default marker icons for Next.js
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+delete L.Icon.Default.prototype._getIconUrl;
 
-let DefaultIcon = L.icon({
-  iconUrl: icon.src,
-  shadowUrl: iconShadow.src,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
-
-L.Marker.prototype.options.icon = DefaultIcon;
 
 /**
  * MapBoundsUpdater Component
@@ -26,14 +22,25 @@ function MapBoundsUpdater({ nodes }) {
   const map = useMap();
 
   useEffect(() => {
-    if (nodes.length > 0) {
-      const bounds = nodes.map(node => [
-        node.metadata.latitude,
-        node.metadata.longitude
-      ]);
-      
-      if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    if (nodes && nodes.length > 0) {
+      try {
+        const validBounds = nodes
+          .filter(node => 
+            node?.metadata?.latitude && 
+            node?.metadata?.longitude &&
+            !isNaN(node.metadata.latitude) &&
+            !isNaN(node.metadata.longitude)
+          )
+          .map(node => [
+            Number(node.metadata.latitude),
+            Number(node.metadata.longitude)
+          ]);
+        
+        if (validBounds.length > 0) {
+          map.fitBounds(validBounds, { padding: [50, 50], maxZoom: 15 });
+        }
+      } catch (error) {
+        console.error('Error updating map bounds:', error);
       }
     }
   }, [nodes, map]);
@@ -46,12 +53,21 @@ function MapBoundsUpdater({ nodes }) {
  * Renders interactive map with node markers, connections, and popups
  */
 export default function DashboardMap({
-  nodes,
+  nodes = [],
   selectedNode,
   setSelectedNode,
   getNodeStatus,
   formatTimeAgo
 }) {
+  const [isMapReady, setIsMapReady] = useState(false);
+
+  useEffect(() => {
+    console.log('🗺️ DashboardMap received nodes:', nodes.length);
+    if (nodes.length > 0) {
+      console.log('📍 First node:', nodes[0]);
+    }
+  }, [nodes]);
+
   /**
    * Creates custom colored marker icon based on node status
    * @param {Object} node - Node object with metadata and realtime data
@@ -59,7 +75,7 @@ export default function DashboardMap({
    */
   const getMarkerIcon = (node) => {
     const status = getNodeStatus(node);
-    const isGateway = node.metadata.type === 'gateway';
+    const isGateway = node?.metadata?.type === 'gateway';
 
     // Status colors
     const colors = {
@@ -89,15 +105,24 @@ export default function DashboardMap({
     });
   };
 
-  // Default center (India)
-  const defaultCenter = [20.5937, 78.9629];
+  // Default center (India - Delhi region)
+  const defaultCenter = [28.6139, 77.2090];
+  
+  // Filter valid nodes
+  const validNodes = nodes.filter(node => 
+    node?.metadata?.latitude && 
+    node?.metadata?.longitude &&
+    !isNaN(node.metadata.latitude) &&
+    !isNaN(node.metadata.longitude)
+  );
 
   return (
     <MapContainer
       center={defaultCenter}
-      zoom={5}
+      zoom={12}
       className="h-full w-full"
       style={{ zIndex: 0 }}
+      whenCreated={() => setIsMapReady(true)}
     >
       {/* OpenStreetMap Tile Layer */}
       <TileLayer
@@ -106,24 +131,24 @@ export default function DashboardMap({
       />
 
       {/* Auto-fit bounds to show all nodes */}
-      <MapBoundsUpdater nodes={nodes} />
+      <MapBoundsUpdater nodes={validNodes} />
 
       {/* Render connection lines between nearby nodes */}
-      {nodes.map(node => {
-        if (!node.metadata.nearbyNodes || node.metadata.nearbyNodes.length === 0) {
+      {validNodes.map(node => {
+        if (!node?.metadata?.nearbyNodes || node.metadata.nearbyNodes.length === 0) {
           return null;
         }
 
         return node.metadata.nearbyNodes.map(nearbyNodeId => {
-          const nearbyNode = nodes.find(n => n.metadata.nodeId === nearbyNodeId);
+          const nearbyNode = validNodes.find(n => n?.metadata?.nodeId === nearbyNodeId);
           if (!nearbyNode) return null;
 
           return (
             <Polyline
               key={`${node.metadata.nodeId}-${nearbyNodeId}`}
               positions={[
-                [node.metadata.latitude, node.metadata.longitude],
-                [nearbyNode.metadata.latitude, nearbyNode.metadata.longitude]
+                [Number(node.metadata.latitude), Number(node.metadata.longitude)],
+                [Number(nearbyNode.metadata.latitude), Number(nearbyNode.metadata.longitude)]
               ]}
               pathOptions={{
                 color: '#3b82f6',      // blue-500
@@ -137,10 +162,10 @@ export default function DashboardMap({
       })}
 
       {/* Render node markers with popups */}
-      {nodes.map(node => (
+      {validNodes.map(node => (
         <Marker
           key={node.metadata.nodeId}
-          position={[node.metadata.latitude, node.metadata.longitude]}
+          position={[Number(node.metadata.latitude), Number(node.metadata.longitude)]}
           icon={getMarkerIcon(node)}
           eventHandlers={{
             click: () => setSelectedNode(node)
@@ -206,7 +231,13 @@ export default function DashboardMap({
 
               {/* Last updated time */}
               <div className="text-xs text-gray-500 mt-2 border-t pt-1.5">
-                Updated: {formatTimeAgo(node.realtime?.lastSeen)}
+                Updated: {formatTimeAgo(
+                  node.realtime?.lastUpdate 
+                    ? (typeof node.realtime.lastUpdate === 'string' 
+                        ? parseInt(node.realtime.lastUpdate) * 1000 
+                        : node.realtime.lastUpdate)
+                    : null
+                )}
               </div>
 
               {/* View details button */}
