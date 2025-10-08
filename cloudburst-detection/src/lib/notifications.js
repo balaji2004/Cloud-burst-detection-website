@@ -28,12 +28,28 @@ export async function sendSMSNotification({ recipients, message, alertId, severi
   });
 
   try {
-    // Check if Twilio is configured
-    const twilioConfigured = process.env.NEXT_PUBLIC_TWILIO_ENABLED === 'true';
-    
-    if (!twilioConfigured) {
+    // Call the SMS API endpoint
+    console.log('🚀 Calling SMS API...');
+
+    const response = await fetch('/api/sms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recipients,
+        message,
+        alertId,
+        severity
+      })
+    });
+
+    const result = await response.json();
+
+    // If Twilio is not configured, log the notification
+    if (!result.configured) {
       console.log('⚠️ Twilio not configured - logging notification instead');
-      
+
       // Log the notification attempt
       const notificationData = {
         id: notificationId,
@@ -48,10 +64,10 @@ export async function sendSMSNotification({ recipients, message, alertId, severi
         deliveryStatus: 'not_configured',
         note: 'SMS service not configured. Would send to: ' + recipients.join(', ')
       };
-      
+
       // Save to Firebase notifications log
       await set(ref(database, `notifications/${notificationId}`), notificationData);
-      
+
       // Log to system logs
       const logId = generateId('log');
       await set(ref(database, `logs/${logId}`), {
@@ -61,86 +77,75 @@ export async function sendSMSNotification({ recipients, message, alertId, severi
         timestamp,
         metadata: { notificationId, alertId, recipients: recipients.length }
       });
-      
+
       console.log('✅ Notification logged:', notificationId);
-      
+
       return {
         success: false,
         configured: false,
         notificationId,
         recipients: recipients.length,
-        message: 'SMS service not configured. Notification logged for future delivery.',
+        message: result.message || 'SMS service not configured. Notification logged for future delivery.',
         details: notificationData
       };
     }
-    
-    // If Twilio IS configured, attempt to send
-    // This would be implemented when you add Twilio credentials
-    console.log('🚀 Attempting SMS send via Twilio...');
-    
-    const deliveryResults = [];
-    
-    // In production, you would use Twilio SDK here
-    // const twilio = require('twilio')(accountSid, authToken);
-    // for (const recipient of recipients) {
-    //   const result = await twilio.messages.create({
-    //     body: message,
-    //     from: twilioPhoneNumber,
-    //     to: recipient
-    //   });
-    //   deliveryResults.push(result);
-    // }
-    
-    // For now, simulate success
-    for (const recipient of recipients) {
-      deliveryResults.push({
-        to: recipient,
-        status: 'simulated',
-        sid: 'SIM' + Date.now() + Math.random().toString(36).substr(2, 9)
-      });
-    }
-    
+
+    // Process the API response
+    const deliveryResults = result.deliveryResults || [];
+
     // Save notification record
     const notificationData = {
       id: notificationId,
       type: 'sms',
-      status: 'sent',
+      status: result.success ? 'sent' : result.partialSuccess ? 'partial' : 'failed',
       alertId,
       severity,
       message,
       recipients,
       timestamp,
       method: 'twilio',
-      deliveryStatus: 'delivered',
-      deliveryResults
+      deliveryStatus: result.success ? 'delivered' : result.partialSuccess ? 'partial' : 'failed',
+      deliveryResults,
+      successCount: result.successCount,
+      failureCount: result.failureCount,
+      errors: result.errors
     };
-    
+
     await set(ref(database, `notifications/${notificationId}`), notificationData);
-    
-    // Log success
+
+    // Log the result
     const logId = generateId('log');
+    const logType = result.success ? 'sms_sent' : result.partialSuccess ? 'sms_partial' : 'sms_failed';
     await set(ref(database, `logs/${logId}`), {
       id: logId,
-      type: 'sms_sent',
-      message: `SMS notifications sent to ${recipients.length} recipient(s)`,
+      type: logType,
+      message: result.message,
       timestamp,
-      metadata: { notificationId, alertId, recipients: recipients.length }
+      metadata: {
+        notificationId,
+        alertId,
+        recipients: recipients.length,
+        successCount: result.successCount,
+        failureCount: result.failureCount
+      }
     });
-    
-    console.log('✅ SMS sent successfully:', notificationId);
-    
+
+    console.log(result.success ? '✅ SMS sent successfully:' : '⚠️ SMS send completed with issues:', notificationId);
+
     return {
-      success: true,
+      success: result.success,
       configured: true,
       notificationId,
       recipients: recipients.length,
-      message: `SMS sent to ${recipients.length} recipient(s)`,
-      details: notificationData
+      message: result.message,
+      details: notificationData,
+      partialSuccess: result.partialSuccess,
+      errors: result.errors
     };
     
   } catch (error) {
     console.error('❌ SMS notification failed:', error);
-    
+
     // Log the error
     const logId = generateId('log');
     await set(ref(database, `logs/${logId}`), {
@@ -150,10 +155,10 @@ export async function sendSMSNotification({ recipients, message, alertId, severi
       timestamp,
       metadata: { alertId, recipients: recipients.length, error: error.message }
     });
-    
+
     return {
       success: false,
-      configured: twilioConfigured,
+      configured: false,
       error: error.message,
       message: 'Failed to send SMS notification'
     };
@@ -238,21 +243,29 @@ export function isSMSConfigured() {
 
 /**
  * Get SMS configuration status
- * @returns {Object} Configuration details
+ * @returns {Promise<Object>} Configuration details
  */
-export function getSMSStatus() {
-  const twilioEnabled = process.env.NEXT_PUBLIC_TWILIO_ENABLED === 'true';
-  const hasAccountSid = !!process.env.NEXT_PUBLIC_TWILIO_ACCOUNT_SID;
-  const hasAuthToken = !!process.env.TWILIO_AUTH_TOKEN; // Server-side only
-  const hasPhoneNumber = !!process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER;
-  
-  return {
-    enabled: twilioEnabled,
-    configured: twilioEnabled && hasAccountSid && hasAuthToken && hasPhoneNumber,
-    accountSid: hasAccountSid ? 'Set' : 'Missing',
-    authToken: hasAuthToken ? 'Set' : 'Missing',
-    phoneNumber: hasPhoneNumber ? 'Set' : 'Missing',
-    status: twilioEnabled ? 'Enabled' : 'Disabled (Using Notification Log)'
-  };
+export async function getSMSStatus() {
+  try {
+    const response = await fetch('/api/sms');
+    const status = await response.json();
+    return status;
+  } catch (error) {
+    console.error('Error fetching SMS status:', error);
+    // Fallback to client-side check
+    const twilioEnabled = process.env.NEXT_PUBLIC_TWILIO_ENABLED === 'true';
+    const hasAccountSid = !!process.env.NEXT_PUBLIC_TWILIO_ACCOUNT_SID;
+    const hasPhoneNumber = !!process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER;
+
+    return {
+      enabled: twilioEnabled,
+      configured: false,
+      accountSid: hasAccountSid ? 'Set' : 'Missing',
+      authToken: 'Unknown',
+      phoneNumber: hasPhoneNumber ? 'Set' : 'Missing',
+      sdkInstalled: 'Unknown',
+      status: 'Unable to check (API unavailable)'
+    };
+  }
 }
 

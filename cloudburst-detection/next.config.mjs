@@ -1,3 +1,7 @@
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.js');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Webpack configuration to handle client-side libraries
@@ -13,11 +17,11 @@ const nextConfig = {
     }
     return config;
   },
-  
+
   eslint: {
     // Don't fail build on ESLint errors (they'll still show as warnings)
     ignoreDuringBuilds: false,
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

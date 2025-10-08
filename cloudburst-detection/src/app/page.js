@@ -5,8 +5,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { database, ref, onValue } from '@/lib/firebase';
 import { Activity, AlertTriangle, Cloud, MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function Home() {
+  const t = useTranslations('home');
   const [stats, setStats] = useState({
     totalNodes: 0,
     activeNodes: 0,
@@ -114,34 +116,32 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Cloudburst Detection System
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            {t('title')}
           </h1>
-          <p className="text-xl text-gray-700 mb-8">
-            Early Warning System for Flash Flood Prevention
+          <p className="text-xl text-gray-700 dark:text-gray-300 mb-8">
+            {t('subtitle')}
           </p>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-12">
-            Real-time monitoring and AI-powered anomaly detection to protect communities 
-            from sudden cloudbursts in hilly regions. Our distributed sensor network 
-            provides hyperlocal rainfall and atmospheric data for timely alerts.
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-12">
+            {t('description')}
           </p>
-          
+
           <div className="flex justify-center gap-4">
             <Link
               href="/dashboard"
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="bg-blue-600 dark:bg-blue-500 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >
-              View Dashboard
+              {t('viewDashboard')}
             </Link>
             <Link
               href="/about"
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors border-2 border-blue-600"
+              className="bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-2 border-blue-600 dark:border-blue-400"
             >
-              Learn More
+              {t('learnMore')}
             </Link>
           </div>
         </div>
@@ -149,102 +149,102 @@ export default function Home() {
         {/* Live Statistics */}
         <div className="mt-20">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Live System Statistics</h2>
-            <Link 
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('liveStats')}</h2>
+            <Link
               href="/admin"
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium flex items-center gap-1"
             >
-              View Analytical Dashboard →
+              {t('viewAnalytical')} →
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <Cloud className="h-8 w-8 text-blue-600" />
+                <Cloud className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-3xl font-bold text-gray-900">{stats.totalNodes}</span>
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalNodes}</span>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Total Nodes</h3>
-              <p className="text-sm text-gray-600">Sensor nodes deployed</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('totalNodes')}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('totalNodesDesc')}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <Activity className="h-8 w-8 text-green-600" />
+                <Activity className="h-8 w-8 text-green-600 dark:text-green-400" />
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-3xl font-bold text-gray-900">{stats.activeNodes}</span>
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white">{stats.activeNodes}</span>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Active Sensors</h3>
-              <p className="text-sm text-gray-600">Currently online</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('activeSensors')}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('activeSensorsDesc')}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <MapPin className="h-8 w-8 text-purple-600" />
+                <MapPin className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-3xl font-bold text-gray-900" title={stats.totalDataPoints.toLocaleString()}>
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white" title={stats.totalDataPoints.toLocaleString()}>
                     {formatNumber(stats.totalDataPoints)}
                   </span>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Data Points</h3>
-              <p className="text-sm text-gray-600">Collected readings</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('dataPoints')}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('dataPointsDesc')}</p>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <AlertTriangle className="h-8 w-8 text-red-600" />
+                <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
                 <div className="flex items-center gap-2">
                   {stats.activeAlerts > 0 && (
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                   )}
-                  <span className="text-3xl font-bold text-gray-900">{stats.activeAlerts}</span>
+                  <span className="text-3xl font-bold text-gray-900 dark:text-white">{stats.activeAlerts}</span>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Active Alerts</h3>
-              <p className="text-sm text-gray-600">Unacknowledged</p>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{t('activeAlerts')}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('activeAlertsDesc')}</p>
             </div>
           </div>
         </div>
 
         {/* Live Status Indicator */}
         <div className="mt-12 flex items-center justify-center">
-          <div className="bg-white px-6 py-3 rounded-full shadow-md flex items-center gap-3">
+          <div className="bg-white dark:bg-gray-800 px-6 py-3 rounded-full shadow-md flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="font-medium text-gray-900">System Online</span>
+              <span className="font-medium text-gray-900 dark:text-white">{t('systemOnline')}</span>
             </div>
-            <div className="h-6 w-px bg-gray-300"></div>
-            <span className="text-gray-600">
-              Last update: {lastUpdateTime}
+            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
+            <span className="text-gray-600 dark:text-gray-400">
+              {t('lastUpdate')}: {lastUpdateTime}
             </span>
           </div>
         </div>
 
         {/* Recent Alerts Ticker */}
         {recentAlerts.length > 0 && (
-          <div className="mt-12 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-            <h3 className="font-semibold text-red-800 mb-2 flex items-center gap-2">
+          <div className="mt-12 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 dark:border-red-400 p-4 rounded-lg">
+            <h3 className="font-semibold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
-              Recent Alerts
+              {t('recentAlerts')}
             </h3>
             <div className="space-y-2">
               {recentAlerts.map((alert, index) => (
-                <div key={index} className="text-red-700 text-sm">
+                <div key={index} className="text-red-700 dark:text-red-300 text-sm">
                   {alert.message}
                 </div>
               ))}
             </div>
             <Link
               href="/alerts"
-              className="text-red-600 hover:text-red-800 font-medium text-sm mt-2 inline-block"
+              className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium text-sm mt-2 inline-block"
             >
-              View all alerts →
+              {t('viewAllAlerts')} →
             </Link>
           </div>
         )}

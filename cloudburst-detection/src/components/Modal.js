@@ -110,28 +110,28 @@ const Modal = ({
         ref={modalRef}
         tabIndex={-1}
         className={classNames(
-          'bg-white rounded-lg shadow-2xl w-full overflow-hidden',
+          'bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full overflow-hidden',
           'animate-slideUp',
           sizeClasses[size] || sizeClasses.md
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             {title && (
               <h2
                 id="modal-title"
-                className="text-xl font-bold text-gray-900"
+                className="text-xl font-bold text-gray-900 dark:text-white"
               >
                 {title}
               </h2>
             )}
             {!title && <div />}
-            
+
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -147,7 +147,7 @@ const Modal = ({
 
         {/* Footer */}
         {footer && (
-          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             {footer}
           </div>
         )}

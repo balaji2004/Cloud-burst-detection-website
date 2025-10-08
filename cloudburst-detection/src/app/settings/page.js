@@ -66,12 +66,12 @@ const NumberInput = ({ value, onChange, min = 0, max = 999999, step = 1, disable
   };
 
   return (
-    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+    <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
       <button
         type="button"
         onClick={handleDecrement}
         disabled={disabled || value <= min}
-        className="px-3 py-2 bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:text-white"
       >
         -
       </button>
@@ -83,13 +83,13 @@ const NumberInput = ({ value, onChange, min = 0, max = 999999, step = 1, disable
         min={min}
         max={max}
         step={step}
-        className="flex-1 px-3 py-2 text-center border-0 focus:outline-none focus:ring-0 disabled:bg-gray-50 disabled:cursor-not-allowed"
+        className="flex-1 px-3 py-2 text-center border-0 focus:outline-none focus:ring-0 disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-white"
       />
       <button
         type="button"
         onClick={handleIncrement}
         disabled={disabled || value >= max}
-        className="px-3 py-2 bg-gray-50 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:text-white"
       >
         +
       </button>
@@ -108,14 +108,14 @@ const Toast = ({ message, type, onClose }) => {
 
   return (
     <div className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border animate-slide-in ${
-      type === 'success' 
-        ? 'bg-green-50 text-green-800 border-green-200' 
-        : 'bg-red-50 text-red-800 border-red-200'
+      type === 'success'
+        ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800'
+        : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800'
     }`}>
       {type === 'success' ? (
-        <CheckCircle className="h-5 w-5 text-green-600" />
+        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
       ) : (
-        <AlertCircle className="h-5 w-5 text-red-600" />
+        <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
       )}
       <span className="font-medium">{message}</span>
       <button onClick={onClose} className="ml-2 hover:opacity-70">
@@ -378,17 +378,17 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-50">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading settings...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading settings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       {/* Toast Notifications */}
       {toast && (
         <Toast
@@ -402,14 +402,14 @@ export default function SettingsPage() {
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Settings className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">System Settings</h1>
+            <Settings className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">System Settings</h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Configure alert thresholds, system preferences, and notification settings
           </p>
           {lastSaved && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
               Last saved: {formatTimeAgo(lastSaved)}
             </p>
           )}
@@ -417,20 +417,20 @@ export default function SettingsPage() {
 
         <div className="space-y-6">
           {/* Alert Thresholds Section */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <Activity className="h-6 w-6 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Alert Thresholds</h2>
+                <Activity className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Alert Thresholds</h2>
                 {hasUnsavedChanges.thresholds && (
-                  <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
+                  <span className="px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-300 bg-yellow-100 dark:bg-yellow-900/30 rounded-full">
                     Unsaved changes
                   </span>
                 )}
               </div>
               <button
                 onClick={resetThresholds}
-                className="text-sm text-gray-600 hover:text-gray-900 underline"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline"
               >
                 Reset to defaults
               </button>
@@ -438,9 +438,9 @@ export default function SettingsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Pressure Drop Alert */}
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Pressure Drop Alert</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Pressure Drop Alert</h3>
                   <ToggleSwitch
                     enabled={thresholds.pressureDrop.enabled}
                     onChange={(val) => setThresholds(prev => ({
@@ -453,7 +453,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Drop Amount (hPa)
                     </label>
                     <NumberInput
@@ -470,7 +470,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Time Window (minutes)
                     </label>
                     <NumberInput
@@ -487,7 +487,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Severity
                     </label>
                     <div className="relative">
@@ -498,21 +498,21 @@ export default function SettingsPage() {
                           pressureDrop: { ...prev.pressureDrop, severity: e.target.value }
                         }))}
                         disabled={!thresholds.pressureDrop.enabled}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed appearance-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:cursor-not-allowed appearance-none dark:bg-gray-700 dark:text-white"
                       >
                         <option value="warning">Warning</option>
                         <option value="critical">Critical</option>
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Humidity Alert */}
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Humidity Alert</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Humidity Alert</h3>
                   <ToggleSwitch
                     enabled={thresholds.humidity.enabled}
                     onChange={(val) => setThresholds(prev => ({
@@ -525,7 +525,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Threshold (%)
                     </label>
                     <NumberInput
@@ -542,7 +542,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Severity
                     </label>
                     <div className="relative">
@@ -553,21 +553,21 @@ export default function SettingsPage() {
                           humidity: { ...prev.humidity, severity: e.target.value }
                         }))}
                         disabled={!thresholds.humidity.enabled}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed appearance-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:cursor-not-allowed appearance-none dark:bg-gray-700 dark:text-white"
                       >
                         <option value="warning">Warning</option>
                         <option value="critical">Critical</option>
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Temperature Drop Alert */}
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Temperature Drop Alert</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Temperature Drop Alert</h3>
                   <ToggleSwitch
                     enabled={thresholds.temperatureDrop.enabled}
                     onChange={(val) => setThresholds(prev => ({
@@ -580,7 +580,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Drop Amount (°C)
                     </label>
                     <NumberInput
@@ -597,7 +597,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Time Window (minutes)
                     </label>
                     <NumberInput
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Severity
                     </label>
                     <div className="relative">
@@ -625,21 +625,21 @@ export default function SettingsPage() {
                           temperatureDrop: { ...prev.temperatureDrop, severity: e.target.value }
                         }))}
                         disabled={!thresholds.temperatureDrop.enabled}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed appearance-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:cursor-not-allowed appearance-none dark:bg-gray-700 dark:text-white"
                       >
                         <option value="warning">Warning</option>
                         <option value="critical">Critical</option>
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Rainfall Alert */}
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Rainfall Alert</h3>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Rainfall Alert</h3>
                   <ToggleSwitch
                     enabled={thresholds.rainfall.enabled}
                     onChange={(val) => setThresholds(prev => ({
@@ -652,7 +652,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Amount (mm)
                     </label>
                     <NumberInput
@@ -669,7 +669,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Time Window (minutes)
                     </label>
                     <NumberInput
@@ -686,7 +686,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                       Severity
                     </label>
                     <div className="relative">
@@ -697,12 +697,12 @@ export default function SettingsPage() {
                           rainfall: { ...prev.rainfall, severity: e.target.value }
                         }))}
                         disabled={!thresholds.rainfall.enabled}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed appearance-none"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 dark:disabled:bg-gray-700 disabled:cursor-not-allowed appearance-none dark:bg-gray-700 dark:text-white"
                       >
                         <option value="warning">Warning</option>
                         <option value="critical">Critical</option>
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -714,7 +714,7 @@ export default function SettingsPage() {
               <button
                 onClick={saveThresholds}
                 disabled={saving.thresholds || !hasUnsavedChanges.thresholds}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 {saving.thresholds ? (
                   <>
@@ -732,20 +732,20 @@ export default function SettingsPage() {
           </div>
 
           {/* System Settings Section */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <Database className="h-6 w-6 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">System Settings</h2>
+                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">System Settings</h2>
                 {hasUnsavedChanges.system && (
-                  <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
+                  <span className="px-2 py-1 text-xs font-medium text-yellow-800 dark:text-yellow-300 bg-yellow-100 dark:bg-yellow-900/30 rounded-full">
                     Unsaved changes
                   </span>
                 )}
               </div>
               <button
                 onClick={resetSystemSettings}
-                className="text-sm text-gray-600 hover:text-gray-900 underline"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white underline"
               >
                 Reset to defaults
               </button>
@@ -754,9 +754,9 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Update Interval */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Update Interval
-                  <span className="ml-2 text-xs text-yellow-600">(Requires refresh)</span>
+                  <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-400">(Requires refresh)</span>
                 </label>
                 <div className="relative">
                   <select
@@ -765,22 +765,22 @@ export default function SettingsPage() {
                       ...prev,
                       updateInterval: parseInt(e.target.value)
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none dark:bg-gray-700 dark:text-white"
                   >
                     <option value={5}>5 seconds</option>
                     <option value={10}>10 seconds</option>
                     <option value={30}>30 seconds</option>
                     <option value={60}>60 seconds</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 </div>
               </div>
 
               {/* Data Retention */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Data Retention
-                  <span className="ml-2 text-xs text-red-600">(Affects historical data)</span>
+                  <span className="ml-2 text-xs text-red-600 dark:text-red-400">(Affects historical data)</span>
                 </label>
                 <div className="relative">
                   <select
@@ -789,20 +789,20 @@ export default function SettingsPage() {
                       ...prev,
                       dataRetention: parseInt(e.target.value)
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none dark:bg-gray-700 dark:text-white"
                   >
                     <option value={1}>1 day</option>
                     <option value={7}>7 days</option>
                     <option value={30}>30 days</option>
                     <option value={90}>90 days</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 </div>
               </div>
 
               {/* Map Provider */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Map Provider
                 </label>
                 <div className="relative">
@@ -813,22 +813,22 @@ export default function SettingsPage() {
                       mapProvider: e.target.value,
                       mapApiKey: e.target.value === 'leaflet' ? '' : prev.mapApiKey
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none dark:bg-gray-700 dark:text-white"
                   >
                     <option value="leaflet">Leaflet (Default)</option>
                     <option value="google">Google Maps</option>
                     <option value="mapbox">Mapbox</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 </div>
               </div>
 
               {/* Map API Key (Conditional) */}
               {(systemSettings.mapProvider === 'google' || systemSettings.mapProvider === 'mapbox') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     {systemSettings.mapProvider === 'google' ? 'Google Maps' : 'Mapbox'} API Key
-                    <span className="ml-2 text-xs text-red-600">*Required</span>
+                    <span className="ml-2 text-xs text-red-600 dark:text-red-400">*Required</span>
                   </label>
                   <input
                     type="password"
@@ -838,7 +838,7 @@ export default function SettingsPage() {
                       mapApiKey: e.target.value
                     }))}
                     placeholder="Enter API key..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               )}
@@ -849,7 +849,7 @@ export default function SettingsPage() {
               <button
                 onClick={saveSystemSettings}
                 disabled={saving.system || !hasUnsavedChanges.system}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
               >
                 {saving.system ? (
                   <>
@@ -867,60 +867,60 @@ export default function SettingsPage() {
           </div>
 
           {/* SMS Configuration Section (Coming Soon) */}
-          <div className="bg-white rounded-lg shadow-md p-6 opacity-60 relative">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 opacity-60 relative">
             <div className="absolute top-4 right-4">
-              <span className="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">
+              <span className="px-3 py-1 text-xs font-semibold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 rounded-full">
                 Coming Soon
               </span>
             </div>
 
             <div className="flex items-center gap-3 mb-6">
-              <MessageSquare className="h-6 w-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">SMS Configuration</h2>
+              <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">SMS Configuration</h2>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   SMS Provider
                 </label>
                 <div className="relative">
                   <select
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed appearance-none"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-not-allowed appearance-none dark:text-gray-400"
                   >
                     <option>Fast2SMS</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   API Key
                 </label>
                 <input
                   type="password"
                   disabled
                   placeholder="Enter Fast2SMS API key..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-not-allowed dark:text-gray-400"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Sender ID
                 </label>
                 <input
                   type="text"
                   disabled
                   placeholder="CLDBRST"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-not-allowed dark:text-gray-400"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Enable SMS Alerts
                 </label>
                 <ToggleSwitch
@@ -935,14 +935,14 @@ export default function SettingsPage() {
             <div className="mt-6 flex justify-end gap-2">
               <button
                 disabled
-                className="bg-gray-400 text-white px-6 py-2 rounded-lg cursor-not-allowed flex items-center gap-2"
+                className="bg-gray-400 dark:bg-gray-600 text-white px-6 py-2 rounded-lg cursor-not-allowed flex items-center gap-2"
               >
                 <AlertCircle className="h-4 w-4" />
                 Test SMS
               </button>
               <button
                 disabled
-                className="bg-gray-400 text-white px-6 py-2 rounded-lg cursor-not-allowed flex items-center gap-2"
+                className="bg-gray-400 dark:bg-gray-600 text-white px-6 py-2 rounded-lg cursor-not-allowed flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
                 Save SMS Settings
@@ -951,58 +951,58 @@ export default function SettingsPage() {
           </div>
 
           {/* Notification Settings Section (Coming Soon) */}
-          <div className="bg-white rounded-lg shadow-md p-6 opacity-60 relative">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 opacity-60 relative">
             <div className="absolute top-4 right-4">
-              <span className="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-100 rounded-full">
+              <span className="px-3 py-1 text-xs font-semibold text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 rounded-full">
                 Coming Soon
               </span>
             </div>
 
             <div className="flex items-center gap-3 mb-6">
-              <Bell className="h-6 w-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Notification Settings</h2>
+              <Bell className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Notification Settings</h2>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
                     Email Notifications
                   </label>
-                  <p className="text-xs text-gray-500">Receive alerts via email</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Receive alerts via email</p>
                 </div>
                 <input
                   type="checkbox"
                   disabled
-                  className="h-4 w-4 rounded border-gray-300 cursor-not-allowed"
+                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 cursor-not-allowed"
                 />
               </div>
 
-              <div className="flex items-center justify-between py-3 border-b border-gray-200">
+              <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-white">
                     Browser Push Notifications
                   </label>
-                  <p className="text-xs text-gray-500">Receive alerts in browser</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Receive alerts in browser</p>
                 </div>
                 <input
                   type="checkbox"
                   disabled
-                  className="h-4 w-4 rounded border-gray-300 cursor-not-allowed"
+                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 cursor-not-allowed"
                 />
               </div>
 
               <div className="py-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Webhook URL
                 </label>
                 <input
                   type="url"
                   disabled
                   placeholder="https://example.com/webhook"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 cursor-not-allowed dark:text-gray-400"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Send POST requests to this URL when alerts are triggered
                 </p>
               </div>
@@ -1011,7 +1011,7 @@ export default function SettingsPage() {
             <div className="mt-6 flex justify-end">
               <button
                 disabled
-                className="bg-gray-400 text-white px-6 py-2 rounded-lg cursor-not-allowed flex items-center gap-2"
+                className="bg-gray-400 dark:bg-gray-600 text-white px-6 py-2 rounded-lg cursor-not-allowed flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
                 Save Notification Settings

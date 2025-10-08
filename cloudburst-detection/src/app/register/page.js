@@ -259,21 +259,21 @@ export default function RegisterNode() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-3xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Register New Node</h1>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Register New Node</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             Add a new sensor node or gateway to the system
           </p>
 
           {message.text && (
             <div className={`p-4 rounded-lg mb-6 ${
-              message.type === 'success' 
-                ? 'bg-green-50 text-green-800 border border-green-200' 
+              message.type === 'success'
+                ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800'
                 : message.type === 'info'
-                ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                : 'bg-red-50 text-red-800 border border-red-200'
+                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800'
             }`}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -282,14 +282,14 @@ export default function RegisterNode() {
                     <div className="mt-3 flex gap-2">
                       <a
                         href="/admin"
-                        className="text-sm underline hover:no-underline"
+                        className="text-sm underline hover:no-underline dark:text-red-400"
                       >
                         Open Analytical Panel →
                       </a>
-                      <span className="text-gray-400">|</span>
+                      <span className="text-gray-400 dark:text-gray-500">|</span>
                       <a
                         href="/dashboard"
-                        className="text-sm underline hover:no-underline"
+                        className="text-sm underline hover:no-underline dark:text-red-400"
                       >
                         View Dashboard →
                       </a>
@@ -301,35 +301,35 @@ export default function RegisterNode() {
           )}
 
           {/* Existing Nodes Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-blue-900">Check Existing Nodes</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300">Check Existing Nodes</h3>
               <button
                 type="button"
                 onClick={checkExistingNodes}
                 disabled={loading}
-                className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                className="text-sm px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50"
               >
                 {loading ? 'Checking...' : 'Check Now'}
               </button>
             </div>
-            <p className="text-sm text-blue-700 mb-2">
+            <p className="text-sm text-blue-700 dark:text-blue-400 mb-2">
               Click &quot;Check Now&quot; to see what node IDs are already taken
             </p>
             
             {existingNodes.length > 0 && (
-              <div className="mt-3 bg-white rounded p-3 max-h-32 overflow-y-auto">
-                <p className="text-xs font-semibold text-gray-600 mb-2">Existing Node IDs:</p>
+              <div className="mt-3 bg-white dark:bg-gray-700 rounded p-3 max-h-32 overflow-y-auto">
+                <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">Existing Node IDs:</p>
                 <div className="grid grid-cols-2 gap-2">
                   {existingNodes.map((node) => (
                     <div key={node.id} className="text-sm flex items-center gap-2">
                       <span className={`w-2 h-2 rounded-full ${node.hasCoordinates ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                      <span className="font-mono text-gray-900">{node.id}</span>
-                      <span className="text-xs text-gray-500">({node.name})</span>
+                      <span className="font-mono text-gray-900 dark:text-white">{node.id}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">({node.name})</span>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   🟢 = Valid (will show on map) | 🔴 = Missing coordinates (won&apos;t show on map)
                 </p>
               </div>
@@ -340,7 +340,7 @@ export default function RegisterNode() {
             {/* Node ID and Type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Node ID *
                 </label>
                 <input
@@ -352,10 +352,10 @@ export default function RegisterNode() {
                   placeholder="e.g., node1, node2, gateway"
                   className="input-field"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Unique identifier for this node
                   {existingNodes.length > 0 && (
-                    <span className="text-orange-600 font-semibold">
+                    <span className="text-orange-600 dark:text-orange-400 font-semibold">
                       {' '}(Avoid: {existingNodes.slice(0, 3).map(n => n.id).join(', ')}
                       {existingNodes.length > 3 && '...'})
                     </span>
@@ -364,7 +364,7 @@ export default function RegisterNode() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Type *
                 </label>
                 <select
@@ -382,7 +382,7 @@ export default function RegisterNode() {
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Node Name *
               </label>
               <input
@@ -398,7 +398,7 @@ export default function RegisterNode() {
 
             {/* Location Capture Method */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Location Capture Method
               </label>
               <div className="flex gap-2 mb-4">
@@ -407,8 +407,8 @@ export default function RegisterNode() {
                   onClick={() => setCaptureMethod('manual')}
                   className={`px-4 py-2 rounded-lg border ${
                     captureMethod === 'manual'
-                      ? 'bg-blue-100 border-blue-500 text-blue-700'
-                      : 'bg-white border-gray-300 text-gray-700'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 text-blue-700 dark:text-blue-300'
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   <MapPin className="inline h-4 w-4 mr-2" />
@@ -423,8 +423,8 @@ export default function RegisterNode() {
                   disabled={loading}
                   className={`px-4 py-2 rounded-lg border ${
                     captureMethod === 'gps'
-                      ? 'bg-blue-100 border-blue-500 text-blue-700'
-                      : 'bg-white border-gray-300 text-gray-700'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-500 dark:border-blue-600 text-blue-700 dark:text-blue-300'
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300'
                   } disabled:opacity-50`}
                 >
                   <Navigation className="inline h-4 w-4 mr-2" />
@@ -436,7 +436,7 @@ export default function RegisterNode() {
             {/* Coordinates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Latitude *
                 </label>
                 <input
@@ -449,11 +449,11 @@ export default function RegisterNode() {
                   placeholder="e.g., 28.6139"
                   className="input-field"
                 />
-                <p className="text-xs text-gray-500 mt-1">Range: -90 to 90</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Range: -90 to 90</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Longitude *
                 </label>
                 <input
@@ -466,13 +466,13 @@ export default function RegisterNode() {
                   placeholder="e.g., 77.2090"
                   className="input-field"
                 />
-                <p className="text-xs text-gray-500 mt-1">Range: -180 to 180</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Range: -180 to 180</p>
               </div>
             </div>
 
             {/* Altitude */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Altitude (meters)
               </label>
               <input
@@ -488,7 +488,7 @@ export default function RegisterNode() {
 
             {/* Installed By */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Installed By
               </label>
               <input
@@ -503,7 +503,7 @@ export default function RegisterNode() {
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Description
               </label>
               <textarea
@@ -518,7 +518,7 @@ export default function RegisterNode() {
 
             {/* Nearby Nodes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Nearby Nodes (comma-separated)
               </label>
               <input
@@ -529,7 +529,7 @@ export default function RegisterNode() {
                 placeholder="e.g., node2, gateway, node3"
                 className="input-field"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 List IDs of nearby nodes for mesh network visualization
               </p>
             </div>
@@ -539,14 +539,14 @@ export default function RegisterNode() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-blue-600 dark:bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Registering...' : 'Register Node'}
               </button>
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium text-gray-700 dark:text-gray-300"
               >
                 Cancel
               </button>

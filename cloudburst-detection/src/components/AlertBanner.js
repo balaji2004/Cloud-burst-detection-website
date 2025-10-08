@@ -67,31 +67,31 @@ const AlertBanner = ({
   const typeConfig = {
     info: {
       icon: Info,
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-500',
-      iconColor: 'text-blue-600',
-      textColor: 'text-blue-900'
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+      borderColor: 'border-blue-500 dark:border-blue-400',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      textColor: 'text-blue-900 dark:text-blue-200'
     },
     success: {
       icon: CheckCircle,
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-500',
-      iconColor: 'text-green-600',
-      textColor: 'text-green-900'
+      bgColor: 'bg-green-50 dark:bg-green-900/20',
+      borderColor: 'border-green-500 dark:border-green-400',
+      iconColor: 'text-green-600 dark:text-green-400',
+      textColor: 'text-green-900 dark:text-green-200'
     },
     warning: {
       icon: AlertTriangle,
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-500',
-      iconColor: 'text-yellow-600',
-      textColor: 'text-yellow-900'
+      bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+      borderColor: 'border-yellow-500 dark:border-yellow-400',
+      iconColor: 'text-yellow-600 dark:text-yellow-400',
+      textColor: 'text-yellow-900 dark:text-yellow-200'
     },
     error: {
       icon: XCircle,
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-500',
-      iconColor: 'text-red-600',
-      textColor: 'text-red-900'
+      bgColor: 'bg-red-50 dark:bg-red-900/20',
+      borderColor: 'border-red-500 dark:border-red-400',
+      iconColor: 'text-red-600 dark:text-red-400',
+      textColor: 'text-red-900 dark:text-red-200'
     }
   };
 

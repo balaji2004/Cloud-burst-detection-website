@@ -115,10 +115,10 @@ function GraphsContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading data...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading data...</p>
         </div>
       </div>
     );
@@ -127,19 +127,19 @@ function GraphsContent() {
   const currentData = nodes[selectedNode]?.realtime || {};
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Historical Data & Graphs</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Historical Data & Graphs</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Analyze sensor trends over time
             </p>
           </div>
           <button
             onClick={handleExportCSV}
             disabled={historicalData.length === 0}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             <Download className="h-5 w-5" />
             Export CSV
@@ -147,10 +147,10 @@ function GraphsContent() {
         </div>
 
         {/* Controls */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Select Node
               </label>
               <select
@@ -167,7 +167,7 @@ function GraphsContent() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Time Range
               </label>
               <select
@@ -187,70 +187,70 @@ function GraphsContent() {
         {/* Current Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {currentData.temperature !== undefined && (
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Temperature</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Temperature</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {currentData.temperature?.toFixed(1)}°C
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-blue-600" />
+                <TrendingUp className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           )}
 
           {currentData.pressure !== undefined && (
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Pressure</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Pressure</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {currentData.pressure?.toFixed(1)} hPa
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-green-600" />
+                <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
           )}
 
           {currentData.humidity !== undefined && currentData.humidity !== null && (
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Humidity</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Humidity</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {currentData.humidity?.toFixed(1)}%
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-purple-600" />
+                <TrendingUp className="h-8 w-8 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           )}
 
-          <div className="bg-white rounded-lg shadow-md p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Data Points</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Data Points</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {historicalData.length}
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-orange-600" />
+              <Calendar className="h-8 w-8 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </div>
 
         {/* Charts */}
         {historicalData.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center text-gray-500 dark:text-gray-400">
             No historical data available for selected time range
           </div>
         ) : (
           <div className="space-y-6">
             {/* Temperature Chart */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Temperature Over Time</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Temperature Over Time</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={historicalData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -270,8 +270,8 @@ function GraphsContent() {
             </div>
 
             {/* Pressure Chart */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Pressure Over Time</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Pressure Over Time</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={historicalData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -292,8 +292,8 @@ function GraphsContent() {
 
             {/* Humidity Chart (if available) */}
             {historicalData.some(d => d.humidity !== undefined && d.humidity !== null) && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Humidity Over Time</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Humidity Over Time</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={historicalData}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -315,8 +315,8 @@ function GraphsContent() {
 
             {/* RSSI Chart (for nodes) */}
             {historicalData.some(d => d.rssi !== undefined && d.rssi !== null) && (
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Signal Strength (RSSI) Over Time</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Signal Strength (RSSI) Over Time</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={historicalData}>
                     <CartesianGrid strokeDasharray="3 3" />

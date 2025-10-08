@@ -104,9 +104,12 @@ export default function AnalyticalPanel() {
 
   // Check SMS configuration status
   useEffect(() => {
-    const status = getSMSStatus();
-    setSmsStatus(status);
-    console.log('📱 SMS Configuration Status:', status);
+    const checkSMSStatus = async () => {
+      const status = await getSMSStatus();
+      setSmsStatus(status);
+      console.log('📱 SMS Configuration Status:', status);
+    };
+    checkSMSStatus();
   }, []);
 
   // Load data from Firebase
@@ -740,23 +743,23 @@ export default function AnalyticalPanel() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <Shield className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Analytical Panel</h1>
+            <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytical Panel</h1>
           </div>
-          <p className="text-gray-600">System management, alerts, and monitoring</p>
+          <p className="text-gray-600 dark:text-gray-400">System management, alerts, and monitoring</p>
         </div>
 
         {/* Toast Notification */}
         {toast.show && (
           <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg alert-enter ${
-            toast.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
-            toast.type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
-            'bg-yellow-50 text-yellow-800 border border-yellow-200'
+            toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-700' :
+            toast.type === 'error' ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-700' :
+            'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700'
           }`}>
             <div className="flex items-center gap-2">
               {toast.type === 'success' && <CheckCircle className="h-5 w-5" />}
@@ -773,75 +776,75 @@ export default function AnalyticalPanel() {
         {/* Statistics Dashboard */}
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <BarChart className="h-6 w-6 text-gray-700" />
-            <h2 className="text-2xl font-bold text-gray-900">Statistics Dashboard</h2>
+            <BarChart className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Statistics Dashboard</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* System Uptime */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
-                <Activity className="h-8 w-8 text-green-600" />
+                <Activity className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.uptime}%</p>
-              <p className="text-sm text-gray-600">System Uptime</p>
-              <p className="text-xs text-gray-500 mt-1">Last 30 days</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.uptime}%</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">System Uptime</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Last 30 days</p>
             </div>
 
             {/* Packet Success Rate */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+                <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.packetSuccessRate}%</p>
-              <p className="text-sm text-gray-600">Packet Success Rate</p>
-              <p className="text-xs text-gray-500 mt-1">Average across all nodes</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.packetSuccessRate}%</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Packet Success Rate</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Average across all nodes</p>
             </div>
 
             {/* Alert Statistics */}
-            <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-2">
-                <Bell className="h-8 w-8 text-orange-600" />
+                <Bell className="h-8 w-8 text-orange-600 dark:text-orange-400" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.alertStats.total}</p>
-              <p className="text-sm text-gray-600">Total Alerts</p>
-              <div className="text-xs text-gray-500 mt-1">
-                <span className="text-red-600">Critical: {stats.alertStats.critical}</span>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.alertStats.total}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Alerts</p>
+              <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                <span className="text-red-600 dark:text-red-400">Critical: {stats.alertStats.critical}</span>
                 {' | '}
-                <span className="text-yellow-600">Warning: {stats.alertStats.warning}</span>
+                <span className="text-yellow-600 dark:text-yellow-400">Warning: {stats.alertStats.warning}</span>
                 <br />
                 <span>Today: {stats.alertStats.today}</span>
               </div>
             </div>
 
             {/* SMS Delivery Rate */}
-            <div className="bg-white rounded-lg shadow-md p-6 relative">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 relative">
               <div className="absolute top-2 right-2">
-                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">Coming soon</span>
+                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">Coming soon</span>
               </div>
               <div className="flex items-center justify-between mb-2">
-                <MessageSquare className="h-8 w-8 text-blue-600" />
+                <MessageSquare className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className="text-3xl font-bold text-gray-900">{stats.smsDeliveryRate}%</p>
-              <p className="text-sm text-gray-600">SMS Delivery Rate</p>
-              <p className="text-xs text-gray-500 mt-1">Last 100 messages</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.smsDeliveryRate}%</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">SMS Delivery Rate</p>
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Last 100 messages</p>
             </div>
           </div>
 
           {/* Node Health Table */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Node Health Overview</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Node Health Overview</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Node ID</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Last Data</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Node ID</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Type</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Last Data</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {Object.entries(nodes).slice(0, 5).map(([nodeId, node]) => {
                     const status = getNodeStatus(node.realtime?.lastUpdate);
                     const lastUpdateTime = node.realtime?.lastUpdate 
@@ -850,13 +853,13 @@ export default function AnalyticalPanel() {
                           : node.realtime.lastUpdate)
                       : null;
                     return (
-                      <tr key={nodeId} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <tr key={nodeId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
                           {node.metadata?.name || nodeId}
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            status === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            status === 'online' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                           }`}>
                             <span className={`w-2 h-2 rounded-full mr-1 ${
                               status === 'online' ? 'bg-green-500' : 'bg-red-500'
@@ -864,14 +867,14 @@ export default function AnalyticalPanel() {
                             {status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            node.metadata?.type === 'gateway' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                            node.metadata?.type === 'gateway' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
                           }`}>
                             {node.metadata?.type || 'Node'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-gray-600">
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                           {formatTimeAgo(lastUpdateTime)}
                         </td>
                       </tr>
@@ -886,29 +889,29 @@ export default function AnalyticalPanel() {
         {/* Node Management */}
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Users className="h-6 w-6 text-gray-700" />
-            <h2 className="text-2xl font-bold text-gray-900">Node Management</h2>
+            <Users className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Node Management</h2>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             {/* Search and Filter */}
             <div className="flex flex-col md:flex-row gap-4 mb-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
                     placeholder="Search nodes..."
                     value={nodeSearchTerm}
                     onChange={(e) => setNodeSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
               </div>
               <select
                 value={nodeSortBy}
                 onChange={(e) => setNodeSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="name">Sort by Name</option>
                 <option value="status">Sort by Status</option>
@@ -919,49 +922,49 @@ export default function AnalyticalPanel() {
             {/* Nodes Table */}
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Node ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Seen</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Node ID</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Last Seen</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {paginatedNodes.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                         No nodes found
                       </td>
                     </tr>
                   ) : (
                     paginatedNodes.map(([nodeId, node]) => {
                       const status = getNodeStatus(node.realtime?.lastUpdate);
-                      const lastUpdateTime = node.realtime?.lastUpdate 
-                        ? (typeof node.realtime.lastUpdate === 'string' 
-                            ? parseInt(node.realtime.lastUpdate) * 1000 
+                      const lastUpdateTime = node.realtime?.lastUpdate
+                        ? (typeof node.realtime.lastUpdate === 'string'
+                            ? parseInt(node.realtime.lastUpdate) * 1000
                             : node.realtime.lastUpdate)
                         : null;
                       return (
-                        <tr key={nodeId} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm font-mono text-blue-600 cursor-pointer hover:underline">
+                        <tr key={nodeId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <td className="px-4 py-3 text-sm font-mono text-blue-600 dark:text-blue-400 cursor-pointer hover:underline">
                             {nodeId}
                           </td>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
                             {node.metadata?.name || 'Unnamed'}
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              node.metadata?.type === 'gateway' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                              node.metadata?.type === 'gateway' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
                             }`}>
                               {node.metadata?.type || 'Node'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              status === 'online' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              status === 'online' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                             }`}>
                               <span className={`w-2 h-2 rounded-full mr-1 ${
                                 status === 'online' ? 'bg-green-500' : 'bg-red-500'
@@ -969,28 +972,28 @@ export default function AnalyticalPanel() {
                               {status}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600">
+                          <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                             {formatTimeAgo(lastUpdateTime)}
                           </td>
                           <td className="px-4 py-3 text-sm">
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleEditNode({ id: nodeId, ...node })}
-                                className="text-blue-600 hover:text-blue-800"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                                 title="Edit"
                               >
                                 <Edit className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => confirmDeleteNode(nodeId)}
-                                className="text-red-600 hover:text-red-800"
+                                className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                                 title="Delete"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => scrollToLogs(nodeId)}
-                                className="text-gray-600 hover:text-gray-800"
+                                className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300"
                                 title="View Logs"
                               >
                                 <Eye className="h-4 w-4" />
@@ -1008,24 +1011,24 @@ export default function AnalyticalPanel() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Showing {((currentPage - 1) * nodesPerPage) + 1} to {Math.min(currentPage * nodesPerPage, filteredNodes.length)} of {filteredNodes.length} nodes
                 </p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
-                  <span className="px-4 py-1 text-sm text-gray-600">
+                  <span className="px-4 py-1 text-sm text-gray-600 dark:text-gray-400">
                     Page {currentPage} of {totalPages}
                   </span>
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -1039,8 +1042,8 @@ export default function AnalyticalPanel() {
         <section className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-6 w-6 text-gray-700" />
-              <h2 className="text-2xl font-bold text-gray-900">Manual Alert Creation</h2>
+              <AlertTriangle className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Manual Alert Creation</h2>
             </div>
             <a
               href="/alerts"
@@ -1051,45 +1054,45 @@ export default function AnalyticalPanel() {
             </a>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             {/* Info Box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
-                <Bell className="h-5 w-5 text-blue-600 mt-0.5" />
+                <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-blue-900 mb-1">How Alerts Work</h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-200 mb-1">How Alerts Work</h4>
+                  <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
                     <li>✅ Alerts are saved to Firebase database instantly</li>
                     <li>✅ All affected nodes will be linked to this alert</li>
                     <li>✅ Emergency contacts for selected nodes will be identified</li>
                     <li>✅ In-app notifications created for dashboard</li>
                     <li>✅ View all alerts on the <a href="/alerts" className="underline font-semibold">Alerts Page</a></li>
                   </ul>
-                  
+
                   {/* SMS Status */}
-                  <div className="mt-3 pt-3 border-t border-blue-200">
+                  <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
                     <div className="flex items-center gap-2 mb-2">
                       <MessageSquare className="h-4 w-4" />
-                      <span className="font-semibold text-blue-900">SMS Notification Status:</span>
+                      <span className="font-semibold text-blue-900 dark:text-blue-200">SMS Notification Status:</span>
                     </div>
                     {smsStatus && (
                       <div className="text-sm">
                         {smsStatus.configured ? (
-                          <div className="flex items-center gap-2 text-green-700">
+                          <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
                             <CheckCircle className="h-4 w-4" />
                             <span>✅ SMS service is configured and ready</span>
                           </div>
                         ) : (
                           <div>
-                            <div className="flex items-center gap-2 text-orange-700 mb-2">
+                            <div className="flex items-center gap-2 text-orange-700 dark:text-orange-400 mb-2">
                               <AlertTriangle className="h-4 w-4" />
                               <span>⚠️ SMS service not configured</span>
                             </div>
-                            <div className="bg-orange-50 border border-orange-200 rounded p-2 text-orange-800">
+                            <div className="bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-700 rounded p-2 text-orange-800 dark:text-orange-300">
                               <p className="font-semibold mb-1">SMS notifications will be logged only</p>
                               <p className="text-xs">To enable actual SMS sending, configure Twilio in your environment variables.</p>
                               <p className="text-xs mt-1">
-                                See <code className="bg-orange-100 px-1 rounded">SMS_SETUP_GUIDE.md</code> for instructions
+                                See <code className="bg-orange-100 dark:bg-orange-900/50 px-1 rounded">SMS_SETUP_GUIDE.md</code> for instructions
                               </p>
                             </div>
                           </div>
@@ -1104,7 +1107,7 @@ export default function AnalyticalPanel() {
             <form onSubmit={handleCreateAlert} className="space-y-4">
               {/* Message */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Message *
                 </label>
                 <textarea
@@ -1114,22 +1117,22 @@ export default function AnalyticalPanel() {
                   maxLength={500}
                   rows={4}
                   placeholder="Enter alert message..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                   {alertForm.message.length}/500 characters
                 </p>
               </div>
 
               {/* Severity */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Severity *
                 </label>
                 <select
                   value={alertForm.severity}
                   onChange={(e) => setAlertForm(prev => ({ ...prev, severity: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="warning">⚠️ Warning</option>
                   <option value="critical">🔴 Critical</option>
@@ -1138,54 +1141,54 @@ export default function AnalyticalPanel() {
 
               {/* Affected Nodes */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Affected Nodes * ({alertForm.affectedNodes.length} selected)
                 </label>
-                <div className="border border-gray-300 rounded-lg p-4">
+                <div className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg p-4">
                   <div className="flex gap-2 mb-3">
                     <button
                       type="button"
                       onClick={selectAllNodes}
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                     >
                       Select All
                     </button>
-                    <span className="text-gray-400">|</span>
+                    <span className="text-gray-400 dark:text-gray-500">|</span>
                     <button
                       type="button"
                       onClick={deselectAllNodes}
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                     >
                       Deselect All
                     </button>
                   </div>
-                  
+
                   <div className="mb-3">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <input
                         type="text"
                         placeholder="Search nodes..."
                         value={nodeSearchInAlert}
                         onChange={(e) => setNodeSearchInAlert(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   </div>
 
                   <div className="max-h-48 overflow-y-auto space-y-2">
                     {filteredNodesForAlert.map(([nodeId, node]) => (
-                      <label key={nodeId} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      <label key={nodeId} className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-600 rounded cursor-pointer">
                         <input
                           type="checkbox"
                           checked={alertForm.affectedNodes.includes(nodeId)}
                           onChange={() => toggleNodeSelection(nodeId)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
                           {node.metadata?.name || nodeId}
                         </span>
-                        <span className="text-xs text-gray-500">({nodeId})</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-500">({nodeId})</span>
                       </label>
                     ))}
                   </div>
@@ -1195,12 +1198,12 @@ export default function AnalyticalPanel() {
               {/* Recipients */}
               {recipients.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Recipients ({recipients.length})
                   </label>
-                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 max-h-32 overflow-y-auto">
+                  <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700 max-h-32 overflow-y-auto">
                     {recipients.map((contact, idx) => (
-                      <div key={idx} className="text-sm text-gray-600 mb-1">
+                      <div key={idx} className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                         {contact.name} ({contact.phone})
                       </div>
                     ))}
@@ -1215,12 +1218,12 @@ export default function AnalyticalPanel() {
                     type="checkbox"
                     checked={alertForm.sendSMS}
                     onChange={(e) => setAlertForm(prev => ({ ...prev, sendSMS: e.target.checked }))}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700">Send SMS to recipients</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Send SMS to recipients</span>
                 </label>
                 {alertForm.sendSMS && recipients.length > 0 && (
-                  <p className="text-xs text-yellow-700 mt-1 ml-6">
+                  <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1 ml-6">
                     ⚠️ This will send SMS to {recipients.length} recipient(s)
                   </p>
                 )}
@@ -1238,13 +1241,13 @@ export default function AnalyticalPanel() {
                 <button
                   type="button"
                   onClick={() => setAlertForm({ message: '', severity: 'warning', affectedNodes: [], sendSMS: false })}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
                   Reset Form
                 </button>
                 <a
                   href="/alerts"
-                  className="bg-orange-100 text-orange-700 px-6 py-2 rounded-lg hover:bg-orange-200 transition-colors flex items-center gap-2 border border-orange-300"
+                  className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-6 py-2 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors flex items-center gap-2 border border-orange-300 dark:border-orange-700"
                 >
                   <Eye className="h-4 w-4" />
                   View Alerts Page
@@ -1257,22 +1260,22 @@ export default function AnalyticalPanel() {
         {/* System Logs */}
         <section className="mb-6" id="system-logs">
           <div className="flex items-center gap-2 mb-4">
-            <FileText className="h-6 w-6 text-gray-700" />
-            <h2 className="text-2xl font-bold text-gray-900">System Logs</h2>
+            <FileText className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">System Logs</h2>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Filter className="inline h-4 w-4 mr-1" />
                   Event Type
                 </label>
                 <select
                   value={logFilter}
                   onChange={(e) => setLogFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Events</option>
                   <option value="registrations">Registrations</option>
@@ -1283,14 +1286,14 @@ export default function AnalyticalPanel() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Calendar className="inline h-4 w-4 mr-1" />
                   Date Range
                 </label>
                 <select
                   value={logDateRange}
                   onChange={(e) => setLogDateRange(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="24h">Last 24 Hours</option>
                   <option value="7d">Last 7 Days</option>
@@ -1299,7 +1302,7 @@ export default function AnalyticalPanel() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Search className="inline h-4 w-4 mr-1" />
                   Search
                 </label>
@@ -1308,18 +1311,18 @@ export default function AnalyticalPanel() {
                   value={logSearchTerm}
                   onChange={(e) => setLogSearchTerm(e.target.value)}
                   placeholder="Search logs..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
 
             <div className="flex justify-between items-center mb-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Showing {filteredLogs.length} log{filteredLogs.length !== 1 ? 's' : ''}
               </p>
               <button
                 onClick={exportLogsToCSV}
-                className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1"
               >
                 <Download className="h-4 w-4" />
                 Export to CSV
@@ -1329,20 +1332,20 @@ export default function AnalyticalPanel() {
             {/* Logs List */}
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {filteredLogs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   No logs available yet
                 </div>
               ) : (
                 filteredLogs.map(log => (
-                  <div key={log.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                  <div key={log.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
                     <div className="flex items-start gap-3">
                       {getLogIcon(log.type)}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-gray-900">{getLogTypeLabel(log.type)}</span>
-                          <span className="text-xs text-gray-500">{formatDateTime(log.timestamp)}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{getLogTypeLabel(log.type)}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-500">{formatDateTime(log.timestamp)}</span>
                         </div>
-                        <p className="text-sm text-gray-700">{log.message}</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">{log.message}</p>
                       </div>
                     </div>
                   </div>
@@ -1355,37 +1358,37 @@ export default function AnalyticalPanel() {
         {/* Data Management */}
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Database className="h-6 w-6 text-gray-700" />
-            <h2 className="text-2xl font-bold text-gray-900">Data Management</h2>
+            <Database className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Data Management</h2>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Clean Old Data */}
               <button
                 onClick={() => setShowCleanupDialog(true)}
-                className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left"
+                className="p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all text-left"
               >
-                <Database className="h-6 w-6 text-blue-600 mb-2" />
-                <h3 className="font-semibold text-gray-900 mb-1">Clean Old Data</h3>
-                <p className="text-sm text-gray-600">Remove historical data older than specified days</p>
+                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400 mb-2" />
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Clean Old Data</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Remove historical data older than specified days</p>
               </button>
 
               {/* Export All Data */}
               <button
                 onClick={handleExportAllData}
-                className="p-4 border-2 border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-left"
+                className="p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 transition-all text-left"
               >
-                <Download className="h-6 w-6 text-green-600 mb-2" />
-                <h3 className="font-semibold text-gray-900 mb-1">Export All Data</h3>
-                <p className="text-sm text-gray-600">Download complete database as JSON file</p>
+                <Download className="h-6 w-6 text-green-600 dark:text-green-400 mb-2" />
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Export All Data</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Download complete database as JSON file</p>
               </button>
 
               {/* Import Data */}
-              <label className="p-4 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-left cursor-pointer">
-                <Upload className="h-6 w-6 text-purple-600 mb-2" />
-                <h3 className="font-semibold text-gray-900 mb-1">Import Data</h3>
-                <p className="text-sm text-gray-600">Upload and import historical data</p>
+              <label className="p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-all text-left cursor-pointer">
+                <Upload className="h-6 w-6 text-purple-600 dark:text-purple-400 mb-2" />
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Import Data</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Upload and import historical data</p>
                 <input
                   type="file"
                   accept=".json"
@@ -1406,31 +1409,31 @@ export default function AnalyticalPanel() {
                     showToast('error', 'Failed to load sample data: ' + error.message);
                   }
                 }}
-                className="p-4 border-2 border-gray-300 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 transition-all text-left"
+                className="p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-all text-left"
               >
-                <Database className="h-6 w-6 text-yellow-600 mb-2" />
-                <h3 className="font-semibold text-gray-900 mb-1">Load Sample Data</h3>
-                <p className="text-sm text-gray-600">Import demo nodes for testing</p>
+                <Database className="h-6 w-6 text-yellow-600 dark:text-yellow-400 mb-2" />
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Load Sample Data</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Import demo nodes for testing</p>
               </button>
 
               {/* Manage Contacts */}
               <a
                 href="/contacts"
-                className="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left block"
+                className="p-4 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all text-left block"
               >
-                <Users className="h-6 w-6 text-blue-600 mb-2" />
-                <h3 className="font-semibold text-gray-900 mb-1">Manage Contacts</h3>
-                <p className="text-sm text-gray-600">Add, edit, or remove emergency contacts</p>
+                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400 mb-2" />
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Manage Contacts</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Add, edit, or remove emergency contacts</p>
               </a>
 
               {/* Reset System */}
               <button
                 onClick={() => setShowResetDialog(true)}
-                className="p-4 border-2 border-red-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all text-left"
+                className="p-4 border-2 border-red-300 dark:border-red-700 rounded-lg hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all text-left"
               >
-                <XCircle className="h-6 w-6 text-red-600 mb-2" />
-                <h3 className="font-semibold text-red-900 mb-1">Reset System</h3>
-                <p className="text-sm text-red-600">⚠️ Delete all data (dangerous)</p>
+                <XCircle className="h-6 w-6 text-red-600 dark:text-red-400 mb-2" />
+                <h3 className="font-semibold text-red-900 dark:text-red-400 mb-1">Reset System</h3>
+                <p className="text-sm text-red-600 dark:text-red-400">⚠️ Delete all data (dangerous)</p>
               </button>
             </div>
           </div>
@@ -1439,18 +1442,18 @@ export default function AnalyticalPanel() {
         {/* Edit Node Modal */}
         {showEditModal && selectedNode && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">Edit Node: {selectedNode.id}</h3>
-                  <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Node: {selectedNode.id}</h3>
+                  <button onClick={() => setShowEditModal(false)} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                     <X className="h-6 w-6" />
                   </button>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
                     <input
                       type="text"
                       value={selectedNode.metadata?.name || ''}
@@ -1458,12 +1461,12 @@ export default function AnalyticalPanel() {
                         ...prev,
                         metadata: { ...prev.metadata, name: e.target.value }
                       }))}
-                      className="input-field"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                     <textarea
                       value={selectedNode.metadata?.description || ''}
                       onChange={(e) => setSelectedNode(prev => ({
@@ -1471,13 +1474,13 @@ export default function AnalyticalPanel() {
                         metadata: { ...prev.metadata, description: e.target.value }
                       }))}
                       rows={3}
-                      className="input-field"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
                   {/* Node Type Selection */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       🔌 Node Type
                     </label>
                     <div className="grid grid-cols-2 gap-3">
@@ -1489,13 +1492,13 @@ export default function AnalyticalPanel() {
                         }))}
                         className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
                           selectedNode.metadata?.type === 'gateway'
-                            ? 'bg-blue-50 border-blue-500 text-blue-700 font-semibold shadow-sm'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-300 font-semibold shadow-sm'
+                            : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                         }`}
                       >
                         <div className={`w-6 h-6 rounded-full ${
                           selectedNode.metadata?.type === 'gateway' ? 'bg-blue-500' : 'bg-gray-400'
-                        } border-[3px] border-white shadow-sm`}></div>
+                        } border-[3px] border-white dark:border-gray-800 shadow-sm`}></div>
                         <div className="text-left">
                           <div className="text-sm font-semibold">Gateway Node</div>
                           <div className="text-xs opacity-75">Network coordinator</div>
@@ -1510,21 +1513,21 @@ export default function AnalyticalPanel() {
                         }))}
                         className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${
                           selectedNode.metadata?.type === 'sensor' || !selectedNode.metadata?.type
-                            ? 'bg-green-50 border-green-500 text-green-700 font-semibold shadow-sm'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'bg-green-50 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300 font-semibold shadow-sm'
+                            : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                         }`}
                       >
                         <div className={`w-5 h-5 rounded-full ${
                           selectedNode.metadata?.type === 'sensor' || !selectedNode.metadata?.type ? 'bg-green-500' : 'bg-gray-400'
-                        } border-2 border-white shadow-sm`}></div>
+                        } border-2 border-white dark:border-gray-800 shadow-sm`}></div>
                         <div className="text-left">
                           <div className="text-sm font-semibold">Sensor Node</div>
                           <div className="text-xs opacity-75">Regular monitoring</div>
                         </div>
                       </button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {selectedNode.metadata?.type === 'gateway' 
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                      {selectedNode.metadata?.type === 'gateway'
                         ? '🛰️ Gateway nodes coordinate the network and appear larger on the map'
                         : '📡 Sensor nodes collect environmental data and report to gateways'
                       }
@@ -1533,7 +1536,7 @@ export default function AnalyticalPanel() {
 
                   {/* Coordinate Capture Method */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       📍 Location Capture Method
                     </label>
                     <div className="flex gap-2 mb-4">
@@ -1542,8 +1545,8 @@ export default function AnalyticalPanel() {
                         onClick={() => setCoordinateCaptureMethod('manual')}
                         className={`flex-1 px-4 py-2.5 rounded-lg border transition-all ${
                           coordinateCaptureMethod === 'manual'
-                            ? 'bg-blue-100 border-blue-500 text-blue-700 font-semibold'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 border-blue-500 text-blue-700 dark:text-blue-300 font-semibold'
+                            : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                         }`}
                       >
                         <MapPin className="inline h-4 w-4 mr-2" />
@@ -1558,8 +1561,8 @@ export default function AnalyticalPanel() {
                         disabled={gpsLoading}
                         className={`flex-1 px-4 py-2.5 rounded-lg border transition-all ${
                           coordinateCaptureMethod === 'gps'
-                            ? 'bg-green-100 border-green-500 text-green-700 font-semibold'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300 font-semibold'
+                            : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
                         <Navigation className="inline h-4 w-4 mr-2" />
@@ -1570,8 +1573,8 @@ export default function AnalyticalPanel() {
                         onClick={() => setCoordinateCaptureMethod('map')}
                         className={`flex-1 px-4 py-2.5 rounded-lg border transition-all ${
                           coordinateCaptureMethod === 'map'
-                            ? 'bg-purple-100 border-purple-500 text-purple-700 font-semibold'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? 'bg-purple-100 dark:bg-purple-900/30 border-purple-500 text-purple-700 dark:text-purple-300 font-semibold'
+                            : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                         }`}
                       >
                         <Locate className="inline h-4 w-4 mr-2" />
@@ -1583,19 +1586,19 @@ export default function AnalyticalPanel() {
                   {/* Map Picker (shown when map method is selected) */}
                   {coordinateCaptureMethod === 'map' && (
                     <div className="mb-4">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
-                        <p className="text-sm text-blue-800">
+                      <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-3">
+                        <p className="text-sm text-blue-800 dark:text-blue-300">
                           <Locate className="inline h-4 w-4 mr-1" />
                           <strong>Click anywhere on the map</strong> to set coordinates
                         </p>
                       </div>
-                      <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
-                        <MapPicker 
+                      <div className="border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+                        <MapPicker
                           position={mapPickerPosition}
                           setPosition={handleMapPositionChange}
                         />
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                         Click on the map to select the exact location for this node
                       </p>
                     </div>
@@ -1604,10 +1607,10 @@ export default function AnalyticalPanel() {
                   {/* Coordinate Inputs */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Latitude
                         {mapPickerPosition && (
-                          <span className="ml-2 text-xs text-green-600">
+                          <span className="ml-2 text-xs text-green-600 dark:text-green-400">
                             ✓ {coordinateCaptureMethod === 'gps' ? 'GPS' : coordinateCaptureMethod === 'map' ? 'Map' : ''}
                           </span>
                         )}
@@ -1623,23 +1626,23 @@ export default function AnalyticalPanel() {
                             metadata: { ...prev.metadata, latitude: e.target.value }
                           }));
                           if (!isNaN(val) && selectedNode.metadata?.longitude) {
-                            setMapPickerPosition({ 
-                              lat: val, 
-                              lng: parseFloat(selectedNode.metadata.longitude) 
+                            setMapPickerPosition({
+                              lat: val,
+                              lng: parseFloat(selectedNode.metadata.longitude)
                             });
                           }
                         }}
-                        className="input-field font-mono"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
                         placeholder="e.g., 28.613900"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Range: -90 to 90</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Range: -90 to 90</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Longitude
                         {mapPickerPosition && (
-                          <span className="ml-2 text-xs text-green-600">
+                          <span className="ml-2 text-xs text-green-600 dark:text-green-400">
                             ✓ {coordinateCaptureMethod === 'gps' ? 'GPS' : coordinateCaptureMethod === 'map' ? 'Map' : ''}
                           </span>
                         )}
@@ -1655,31 +1658,31 @@ export default function AnalyticalPanel() {
                             metadata: { ...prev.metadata, longitude: e.target.value }
                           }));
                           if (!isNaN(val) && selectedNode.metadata?.latitude) {
-                            setMapPickerPosition({ 
-                              lat: parseFloat(selectedNode.metadata.latitude), 
-                              lng: val 
+                            setMapPickerPosition({
+                              lat: parseFloat(selectedNode.metadata.latitude),
+                              lng: val
                             });
                           }
                         }}
-                        className="input-field font-mono"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
                         placeholder="e.g., 77.209000"
                       />
-                      <p className="text-xs text-gray-500 mt-1">Range: -180 to 180</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">Range: -180 to 180</p>
                     </div>
                   </div>
 
                   {/* Current Coordinates Display */}
                   {selectedNode.metadata?.latitude && selectedNode.metadata?.longitude && (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-gray-600 mb-1">Current Coordinates:</p>
-                      <p className="text-sm font-mono text-gray-900">
+                    <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Current Coordinates:</p>
+                      <p className="text-sm font-mono text-gray-900 dark:text-white">
                         {parseFloat(selectedNode.metadata.latitude).toFixed(6)}, {parseFloat(selectedNode.metadata.longitude).toFixed(6)}
                       </p>
                       <a
                         href={`https://www.google.com/maps?q=${selectedNode.metadata.latitude},${selectedNode.metadata.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline mt-1 inline-block"
+                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1 inline-block"
                       >
                         View on Google Maps →
                       </a>
@@ -1687,7 +1690,7 @@ export default function AnalyticalPanel() {
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Altitude (m)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Altitude (m)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -1696,25 +1699,25 @@ export default function AnalyticalPanel() {
                         ...prev,
                         metadata: { ...prev.metadata, altitude: e.target.value }
                       }))}
-                      className="input-field"
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
 
                   {/* Nearby Nodes Configuration */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       🔗 Nearby Nodes Configuration
                     </label>
-                    <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-                      <p className="text-xs text-gray-600 mb-3">
+                    <div className="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
                         Select nodes that are in communication range or form part of this node&apos;s network mesh.
                         These connections will be visualized as lines on the map.
                       </p>
-                      
+
                       {/* Current nearby nodes */}
                       {selectedNode.metadata?.nearbyNodes && selectedNode.metadata.nearbyNodes.length > 0 && (
                         <div className="mb-3">
-                          <p className="text-xs font-semibold text-gray-700 mb-2">
+                          <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Connected Nodes ({selectedNode.metadata.nearbyNodes.length}):
                           </p>
                           <div className="flex flex-wrap gap-2">
@@ -1723,7 +1726,7 @@ export default function AnalyticalPanel() {
                               return (
                                 <div
                                   key={nearbyNodeId}
-                                  className="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg text-sm"
+                                  className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-3 py-1.5 rounded-lg text-sm"
                                 >
                                   <span className="font-medium">
                                     {nearbyNode?.metadata?.name || nearbyNodeId}
@@ -1739,7 +1742,7 @@ export default function AnalyticalPanel() {
                                         }
                                       }));
                                     }}
-                                    className="text-blue-600 hover:text-blue-900"
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-200"
                                     title="Remove connection"
                                   >
                                     <X className="h-4 w-4" />
@@ -1753,7 +1756,7 @@ export default function AnalyticalPanel() {
 
                       {/* Add nearby node selector */}
                       <div>
-                        <p className="text-xs font-semibold text-gray-700 mb-2">Add Nearby Node:</p>
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Add Nearby Node:</p>
                         <select
                           onChange={(e) => {
                             const nodeIdToAdd = e.target.value;
@@ -1771,13 +1774,13 @@ export default function AnalyticalPanel() {
                             }
                             e.target.value = ''; // Reset selector
                           }}
-                          className="input-field text-sm"
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                           defaultValue=""
                         >
                           <option value="">Select a node to connect...</option>
                           {Object.entries(nodes)
-                            .filter(([nodeId]) => 
-                              nodeId !== selectedNode.id && 
+                            .filter(([nodeId]) =>
+                              nodeId !== selectedNode.id &&
                               !(selectedNode.metadata?.nearbyNodes || []).includes(nodeId)
                             )
                             .map(([nodeId, node]) => (
@@ -1800,14 +1803,14 @@ export default function AnalyticalPanel() {
                               metadata: { ...prev.metadata, nearbyNodes: [] }
                             }));
                           }}
-                          className="text-xs text-red-600 hover:text-red-800 font-medium"
+                          className="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium"
                         >
                           Clear All Connections
                         </button>
                       </div>
 
                       {selectedNode.metadata?.nearbyNodes && selectedNode.metadata.nearbyNodes.length === 0 && (
-                        <p className="text-xs text-gray-500 mt-2 italic">
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 italic">
                           No nearby nodes configured. This node will appear isolated on the map.
                         </p>
                       )}
@@ -1823,7 +1826,7 @@ export default function AnalyticalPanel() {
                     </button>
                     <button
                       onClick={() => setShowEditModal(false)}
-                      className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                      className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       Cancel
                     </button>
@@ -1837,16 +1840,16 @@ export default function AnalyticalPanel() {
         {/* Delete Node Confirmation Dialog */}
         {showDeleteDialog && nodeToDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-red-100 p-2 rounded-full">
-                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-full">
+                  <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900">Delete Node</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Delete Node</h3>
               </div>
 
-              <p className="text-gray-700 mb-6">
-                Are you sure you want to delete <strong>{nodeToDelete}</strong>? 
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                Are you sure you want to delete <strong>{nodeToDelete}</strong>?
                 This will remove all historical data. This action cannot be undone.
               </p>
 
@@ -1862,7 +1865,7 @@ export default function AnalyticalPanel() {
                     setShowDeleteDialog(false);
                     setNodeToDelete(null);
                   }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1874,17 +1877,17 @@ export default function AnalyticalPanel() {
         {/* Cleanup Data Dialog */}
         {showCleanupDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Clean Old Data</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Clean Old Data</h3>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Remove data older than:
                 </label>
                 <select
                   value={cleanupDays}
                   onChange={(e) => setCleanupDays(parseInt(e.target.value))}
-                  className="input-field"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="7">7 days</option>
                   <option value="30">30 days</option>
@@ -1892,7 +1895,7 @@ export default function AnalyticalPanel() {
                 </select>
               </div>
 
-              <p className="text-sm text-yellow-700 mb-6 bg-yellow-50 p-3 rounded">
+              <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-6 bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded">
                 ⚠️ This will delete all historical sensor data older than {cleanupDays} days.
               </p>
 
@@ -1905,7 +1908,7 @@ export default function AnalyticalPanel() {
                 </button>
                 <button
                   onClick={() => setShowCleanupDialog(false)}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1917,25 +1920,25 @@ export default function AnalyticalPanel() {
         {/* Import Data Dialog */}
         {showImportDialog && importPreview && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Import Data Preview</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Import Data Preview</h3>
 
               <div className="space-y-3 mb-6">
-                <div className="flex justify-between p-3 bg-gray-50 rounded">
-                  <span className="font-medium">Nodes:</span>
-                  <span>{Object.keys(importPreview.nodes || {}).length}</span>
+                <div className="flex justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  <span className="font-medium text-gray-900 dark:text-white">Nodes:</span>
+                  <span className="text-gray-900 dark:text-white">{Object.keys(importPreview.nodes || {}).length}</span>
                 </div>
-                <div className="flex justify-between p-3 bg-gray-50 rounded">
-                  <span className="font-medium">Alerts:</span>
-                  <span>{Object.keys(importPreview.alerts || {}).length}</span>
+                <div className="flex justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  <span className="font-medium text-gray-900 dark:text-white">Alerts:</span>
+                  <span className="text-gray-900 dark:text-white">{Object.keys(importPreview.alerts || {}).length}</span>
                 </div>
-                <div className="flex justify-between p-3 bg-gray-50 rounded">
-                  <span className="font-medium">Contacts:</span>
-                  <span>{Object.keys(importPreview.contacts || {}).length}</span>
+                <div className="flex justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                  <span className="font-medium text-gray-900 dark:text-white">Contacts:</span>
+                  <span className="text-gray-900 dark:text-white">{Object.keys(importPreview.contacts || {}).length}</span>
                 </div>
               </div>
 
-              <p className="text-sm text-yellow-700 mb-6 bg-yellow-50 p-3 rounded">
+              <p className="text-sm text-yellow-700 dark:text-yellow-400 mb-6 bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded">
                 ⚠️ This will overwrite existing data with the imported data.
               </p>
 
@@ -1951,7 +1954,7 @@ export default function AnalyticalPanel() {
                     setShowImportDialog(false);
                     setImportPreview(null);
                   }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1963,21 +1966,21 @@ export default function AnalyticalPanel() {
         {/* Reset System Dialog */}
         {showResetDialog && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-red-100 p-2 rounded-full">
-                  <XCircle className="h-6 w-6 text-red-600" />
+                <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-full">
+                  <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
-                <h3 className="text-xl font-bold text-red-900">Reset Entire System</h3>
+                <h3 className="text-xl font-bold text-red-900 dark:text-red-400">Reset Entire System</h3>
               </div>
 
-              <p className="text-gray-700 mb-4">
-                <strong className="text-red-600">⚠️ WARNING:</strong> This will delete ALL nodes, alerts, contacts, and settings. 
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                <strong className="text-red-600 dark:text-red-400">⚠️ WARNING:</strong> This will delete ALL nodes, alerts, contacts, and settings.
                 This action cannot be undone.
               </p>
 
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Type <strong>DELETE</strong> to confirm:
                 </label>
                 <input
@@ -1985,7 +1988,7 @@ export default function AnalyticalPanel() {
                   value={resetConfirmText}
                   onChange={(e) => setResetConfirmText(e.target.value)}
                   placeholder="Type DELETE"
-                  className="input-field"
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -2002,7 +2005,7 @@ export default function AnalyticalPanel() {
                     setShowResetDialog(false);
                     setResetConfirmText('');
                   }}
-                  className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                  className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
                   Cancel
                 </button>

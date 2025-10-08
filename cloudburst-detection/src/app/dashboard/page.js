@@ -25,10 +25,10 @@ import {
 const DashboardMap = dynamic(() => import('@/components/DashboardMap'), {
   ssr: false,
   loading: () => (
-    <div className="h-screen flex items-center justify-center bg-gray-50">
+    <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600 font-medium">Loading map...</p>
+        <p className="text-gray-600 dark:text-gray-400 font-medium">Loading map...</p>
       </div>
     </div>
   )
@@ -229,11 +229,11 @@ export default function DashboardPage() {
   // ==================== LOADING STATE ====================
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
           <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-blue-600 mx-auto mb-6"></div>
-          <p className="text-gray-700 font-semibold text-lg mb-2">Loading Dashboard</p>
-          <p className="text-gray-500 text-sm">Connecting to Firebase...</p>
+          <p className="text-gray-700 dark:text-white font-semibold text-lg mb-2">Loading Dashboard</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Connecting to Firebase...</p>
         </div>
       </div>
     );
@@ -242,11 +242,11 @@ export default function DashboardPage() {
   // ==================== ERROR STATE ====================
   if (error) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center max-w-md px-6">
           <AlertCircle className="w-20 h-20 text-red-500 mx-auto mb-6" />
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Error Loading Dashboard</h2>
-          <p className="text-gray-600 mb-6 leading-relaxed">{error}</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Error Loading Dashboard</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">{error}</p>
           <div className="space-y-3">
             <button
               onClick={() => window.location.reload()}
@@ -254,8 +254,8 @@ export default function DashboardPage() {
             >
               Retry Connection
             </button>
-            <p className="text-sm text-gray-500">
-              Make sure Firebase is properly configured in <code className="bg-gray-200 px-1 rounded">firebase.js</code>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Make sure Firebase is properly configured in <code className="bg-gray-200 dark:bg-gray-700 dark:text-gray-300 px-1 rounded">firebase.js</code>
             </p>
           </div>
         </div>
@@ -266,11 +266,11 @@ export default function DashboardPage() {
   // ==================== EMPTY STATE ====================
   if (nodes.length === 0) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center max-w-md px-6">
-          <MapPin className="w-24 h-24 text-gray-400 mx-auto mb-6" />
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">No Nodes Registered</h2>
-          <p className="text-gray-600 mb-6 leading-relaxed">
+          <MapPin className="w-24 h-24 text-gray-400 dark:text-gray-600 mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">No Nodes Registered</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
             Register your first sensor node to start monitoring weather conditions and detecting cloudbursts.
           </p>
           <button
@@ -297,12 +297,12 @@ export default function DashboardPage() {
       />
 
       {/* Node Counter Badge */}
-      <div className="absolute top-4 left-4 z-[1000] bg-white rounded-lg shadow-lg px-4 py-3">
+      <div className="absolute top-4 left-4 z-[1000] bg-white dark:bg-gray-800 rounded-lg shadow-lg px-4 py-3">
         <div className="flex items-center gap-3">
           <MapPinned className="w-5 h-5 text-blue-600" />
           <div>
-            <p className="text-xs text-gray-500 font-medium">Active Nodes</p>
-            <p className="text-2xl font-bold text-gray-900">{nodes.length}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Active Nodes</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{nodes.length}</p>
           </div>
         </div>
       </div>
@@ -317,7 +317,7 @@ export default function DashboardPage() {
           />
 
           {/* Sidebar */}
-          <div className="fixed top-0 right-0 w-full md:w-[420px] h-full bg-white shadow-2xl z-[1001] overflow-y-auto transform transition-transform duration-300 ease-out">
+          <div className="fixed top-0 right-0 w-full md:w-[420px] h-full bg-white dark:bg-gray-800 shadow-2xl z-[1001] overflow-y-auto transform transition-transform duration-300 ease-out">
             {/* Header */}
             <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-5 flex justify-between items-center shadow-md z-10">
               <div>
@@ -326,7 +326,7 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={() => setSelectedNode(null)}
-                className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-blue-700 dark:hover:bg-blue-800 rounded-lg transition-colors"
                 aria-label="Close sidebar"
               >
                 <X className="w-6 h-6" />
@@ -334,64 +334,64 @@ export default function DashboardPage() {
             </div>
 
             {/* Status Badge */}
-            <div className="p-5 bg-gray-50 border-b">
+            <div className="p-5 bg-gray-50 dark:bg-gray-700 border-b dark:border-gray-600">
               <NodeStatusBadge status={getNodeStatus(selectedNode)} showDot showText size="lg" />
             </div>
 
             {/* Current Sensor Readings */}
-            <div className="p-5 border-b">
-              <h3 className="font-semibold text-lg mb-4 text-gray-900">Current Readings</h3>
+            <div className="p-5 border-b dark:border-gray-600">
+              <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Current Readings</h3>
               <div className="space-y-3">
                 {/* Temperature */}
-                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-100">
+                <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-red-100 rounded-lg">
-                      <Thermometer className="w-5 h-5 text-red-600" />
+                    <div className="p-2 bg-red-100 dark:bg-red-800/50 rounded-lg">
+                      <Thermometer className="w-5 h-5 text-red-600 dark:text-red-400" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Temperature</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Temperature</span>
                   </div>
-                  <span className="font-bold text-lg text-gray-900">
+                  <span className="font-bold text-lg text-gray-900 dark:text-white">
                     {selectedNode.realtime?.temperature?.toFixed(1) || 'N/A'}°C
                   </span>
                 </div>
 
                 {/* Pressure */}
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-100">
+                <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Gauge className="w-5 h-5 text-blue-600" />
+                    <div className="p-2 bg-blue-100 dark:bg-blue-800/50 rounded-lg">
+                      <Gauge className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Pressure</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Pressure</span>
                   </div>
-                  <span className="font-bold text-lg text-gray-900">
+                  <span className="font-bold text-lg text-gray-900 dark:text-white">
                     {selectedNode.realtime?.pressure?.toFixed(1) || 'N/A'} hPa
                   </span>
                 </div>
 
                 {/* Humidity (if available) */}
                 {selectedNode.realtime?.humidity !== null && selectedNode.realtime?.humidity !== undefined && (
-                  <div className="flex justify-between items-center p-3 bg-cyan-50 rounded-lg border border-cyan-100">
+                  <div className="flex justify-between items-center p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg border border-cyan-100 dark:border-cyan-800">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-cyan-100 rounded-lg">
-                        <Droplets className="w-5 h-5 text-cyan-600" />
+                      <div className="p-2 bg-cyan-100 dark:bg-cyan-800/50 rounded-lg">
+                        <Droplets className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
                       </div>
-                      <span className="text-sm font-medium text-gray-700">Humidity</span>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Humidity</span>
                     </div>
-                    <span className="font-bold text-lg text-gray-900">
+                    <span className="font-bold text-lg text-gray-900 dark:text-white">
                       {selectedNode.realtime.humidity.toFixed(1)}%
                     </span>
                   </div>
                 )}
 
                 {/* Signal Strength */}
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-100">
+                <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <Signal className="w-5 h-5 text-green-600" />
+                    <div className="p-2 bg-green-100 dark:bg-green-800/50 rounded-lg">
+                      <Signal className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Signal Strength</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Signal Strength</span>
                   </div>
-                  <span className="font-bold text-lg text-gray-900">
+                  <span className="font-bold text-lg text-gray-900 dark:text-white">
                     {selectedNode.realtime?.rssi || 'N/A'} dBm
                   </span>
                 </div>
@@ -399,15 +399,15 @@ export default function DashboardPage() {
             </div>
 
             {/* Node Information */}
-            <div className="p-5 border-b">
-              <h3 className="font-semibold text-lg mb-4 text-gray-900">Node Information</h3>
+            <div className="p-5 border-b dark:border-gray-600">
+              <h3 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Node Information</h3>
               <div className="space-y-3">
                 {/* Node Type */}
                 <div className="flex items-start gap-3">
-                  <Radio className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <Radio className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase">Type</p>
-                    <p className="text-sm text-gray-900 font-medium capitalize">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Type</p>
+                    <p className="text-sm text-gray-900 dark:text-white font-medium capitalize">
                       {selectedNode.metadata.type}
                       {selectedNode.metadata.type === 'gateway' && ' 🛰️'}
                     </p>
@@ -416,10 +416,10 @@ export default function DashboardPage() {
 
                 {/* Location Coordinates */}
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-xs text-gray-500 font-medium uppercase">Coordinates</p>
-                    <p className="text-sm text-gray-900 font-mono">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Coordinates</p>
+                    <p className="text-sm text-gray-900 dark:text-white font-mono">
                       {selectedNode.metadata.latitude.toFixed(4)}°N,{' '}
                       {selectedNode.metadata.longitude.toFixed(4)}°E
                     </p>
@@ -429,10 +429,10 @@ export default function DashboardPage() {
                 {/* Altitude */}
                 {selectedNode.metadata.altitude && (
                   <div className="flex items-start gap-3">
-                    <Mountain className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <Mountain className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500 font-medium uppercase">Altitude</p>
-                      <p className="text-sm text-gray-900 font-medium">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Altitude</p>
+                      <p className="text-sm text-gray-900 dark:text-white font-medium">
                         {selectedNode.metadata.altitude.toFixed(1)} meters
                       </p>
                     </div>
@@ -442,10 +442,10 @@ export default function DashboardPage() {
                 {/* Installed By */}
                 {selectedNode.metadata.installedBy && (
                   <div className="flex items-start gap-3">
-                    <User className="w-5 h-5 text-gray-400 mt-0.5" />
+                    <User className="w-5 h-5 text-gray-400 dark:text-gray-500 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-xs text-gray-500 font-medium uppercase">Installed By</p>
-                      <p className="text-sm text-gray-900 font-medium">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase">Installed By</p>
+                      <p className="text-sm text-gray-900 dark:text-white font-medium">
                         {selectedNode.metadata.installedBy}
                       </p>
                     </div>
@@ -454,9 +454,9 @@ export default function DashboardPage() {
 
                 {/* Description */}
                 {selectedNode.metadata.description && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-500 font-medium uppercase mb-1">Description</p>
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                  <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase mb-1">Description</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                       {selectedNode.metadata.description}
                     </p>
         </div>
@@ -465,14 +465,14 @@ export default function DashboardPage() {
             </div>
 
             {/* Last Updated */}
-            <div className="p-5 border-b bg-gray-50">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="p-5 border-b dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Clock className="w-4 h-4" />
                 <span className="font-medium">Last Updated:</span>
                 <span>{formatTimestamp(
-                  selectedNode.realtime?.lastUpdate 
-                    ? (typeof selectedNode.realtime.lastUpdate === 'string' 
-                        ? parseInt(selectedNode.realtime.lastUpdate) * 1000 
+                  selectedNode.realtime?.lastUpdate
+                    ? (typeof selectedNode.realtime.lastUpdate === 'string'
+                        ? parseInt(selectedNode.realtime.lastUpdate) * 1000
                         : selectedNode.realtime.lastUpdate)
                     : null
                 )}</span>
@@ -493,7 +493,7 @@ export default function DashboardPage() {
 
               <button
                 onClick={() => setSelectedNode(null)}
-                className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                className="w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-semibold"
               >
                 Close
               </button>
