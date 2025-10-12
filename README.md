@@ -71,15 +71,15 @@ This system provides **hyperlocal weather insights**, **AI-based alerts**, and a
 
 ## Key Features
 
-Real-time **sensor data visualization**  
-**AI-powered** anomaly detection using XGBoost  
-Multi-level **alert system** (Threshold / AI / Manual)  
-**SMS, Siren, and App notifications** for end-users  
-**Decentralized LoRa Mesh** for connectivity in remote terrain  
-**Solar-powered** low-cost hardware (~₹2.5K–3K per node)  
-**Live dashboard** with intuitive UI  
-**High reliability:** 99% uptime in field tests  
-**Community-friendly deployment** model
+- Real-time **sensor data visualization**  
+- **AI-powered** anomaly detection using XGBoost  
+- Multi-level **alert system** (Threshold / AI / Manual)  
+- **SMS, Siren, and App notifications** for end-users  
+- **Decentralized LoRa Mesh** for connectivity in remote terrain  
+- **Solar-powered** low-cost hardware (~₹2.5K–3K per node)  
+- **Live dashboard** with intuitive UI  
+- **High reliability:** 99% uptime in field tests  
+- **Community-friendly deployment** model
 
 ---
 
@@ -97,7 +97,7 @@ Multi-level **alert system** (Threshold / AI / Manual)
 
 ## Project Setup (Local)
 
-### 🔧 Prerequisites
+### Prerequisites
 - Node.js (v18+)
 - npm or yarn
 - Firebase account
