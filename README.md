@@ -21,6 +21,52 @@ This system provides **hyperlocal weather insights**, **AI-based alerts**, and a
 
 ---
 
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                       CLOUD-BURST DETECTION SYSTEM                   │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────┐        ┌──────────────────────┐
+│   SENSOR NODE 1      │        │   SENSOR NODE 2      │
+│  Arduino Nano        │        │  Arduino Nano        │
+│  + BMP280            │        │  + BMP280            │
+│  + LoRa Ra-02        │        │  + LoRa Ra-02        │
+└──────────┬───────────┘        └──────────┬───────────┘
+           │                               │
+           │    433 MHz LoRa Network      │
+           └───────────┬───────────────────┘
+                       ↓
+              ┌─────────────────┐
+              │  GATEWAY NODE   │
+              │  NodeMCU ESP8266│
+              │  + BME280       │
+              │  + LoRa Ra-02   │
+              │  + WiFi         │
+              └────────┬────────┘
+                       │
+                       ↓ WiFi/Internet
+              ┌─────────────────┐
+              │  FIREBASE       │
+              │  Realtime DB    │
+              └────────┬────────┘
+                       │
+        ┌──────────────┼──────────────┐
+        ↓              ↓              ↓
+┌───────────────┐ ┌──────────┐ ┌──────────────┐
+│  WEB DASHBOARD│ │ ML MODEL │ │ SMS SERVICE  │
+│  Next.js      │ │ XGBoost  │ │ Twilio API   │
+│  + Live Maps  │ │ Predict  │ │ Alerts       │
+└───────────────┘ └──────────┘ └──────────────┘
+        ↓              ↓              ↓
+┌───────────────────────────────────────────┐
+│           END USERS & AUTHORITIES         │
+│  Real-time Data | Predictions | Alerts   │
+└───────────────────────────────────────────┘
+```
+---
+
 ## Project Architecture
 
 ### 1. **IoT Hardware Layer**
