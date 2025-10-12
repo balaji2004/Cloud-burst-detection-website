@@ -1,17 +1,14 @@
-# ☁️ Cloud-Burst Detection System
+# Cloud-Burst Detection System
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.1-61dafb?logo=react)](https://reactjs.org/)
 [![Firebase](https://img.shields.io/badge/Firebase-Realtime%20DB-orange?logo=firebase)](https://firebase.google.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 A comprehensive IoT-based real-time weather monitoring and cloud-burst prediction system that combines hardware sensor networks, machine learning, and a modern web dashboard to detect and alert communities about extreme weather events.
 
-![Cloud-Burst Detection Banner](https://via.placeholder.com/1200x300/2563eb/ffffff?text=Cloud-Burst+Detection+System)
-
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [About the Project](#about-the-project)
 - [System Architecture](#system-architecture)
@@ -32,7 +29,7 @@ A comprehensive IoT-based real-time weather monitoring and cloud-burst predictio
 
 ---
 
-## 🌟 About the Project
+## About the Project
 
 ### What is a Cloudburst?
 
@@ -40,10 +37,10 @@ A **cloudburst** is a sudden, intense rainfall event (100+ mm/hour) that can cau
 
 ### The Problem
 
-- ⚠️ Cloudbursts occur with little to no warning
-- 🌊 Cause devastating flash floods and landslides
-- 🏘️ Threaten lives and infrastructure in vulnerable areas
-- 📡 Existing weather systems often fail to provide localized, real-time alerts
+- Cloudbursts occur with little to no warning
+- Cause devastating flash floods and landslides
+- Threaten lives and infrastructure in vulnerable areas
+- Existing weather systems often fail to provide localized, real-time alerts
 
 ### Our Solution
 
@@ -57,7 +54,7 @@ This system provides a **comprehensive, end-to-end solution** for cloud-burst de
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -104,39 +101,45 @@ This system provides a **comprehensive, end-to-end solution** for cloud-burst de
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🌡️ Real-Time Monitoring
+### Real-Time Monitoring
+
 - **Live Sensor Data**: Temperature, pressure, humidity, altitude
 - **Interactive Maps**: Leaflet-based visualization of sensor locations
 - **Node Status Tracking**: Online/offline status with last update times
 - **Historical Data**: Complete data history stored and visualized
 
-### 🤖 Machine Learning Predictions
+### Machine Learning Predictions
+
 - **XGBoost Model**: Trained on historical weather data
 - **Cloudburst Forecasting**: Predict events 24 hours in advance
 - **Feature Engineering**: Multi-parameter analysis (temp, pressure, humidity, wind)
 - **Confidence Scores**: Prediction reliability metrics
 
-### 🚨 Alert Management
+### Alert Management
+
 - **Automated Alerts**: Create and broadcast warnings instantly
 - **SMS Notifications**: Twilio integration for instant text alerts
 - **Contact Management**: Organize recipients by location/zone
 - **Alert History**: Track all alerts with acknowledgment status
 - **Severity Levels**: Critical, warning, info classifications
 
-### 📊 Data Visualization
+### Data Visualization
+
 - **Live Graphs**: Real-time charts with Recharts
 - **Historical Trends**: View data over custom time periods
 - **Multi-Node Comparison**: Compare data across sensor locations
 - **Export Capabilities**: Download data for analysis
 
-### 🌍 Multi-Language Support
+### Multi-Language Support
+
 - **7 Languages**: English, Hindi, Bengali, Kannada, Marathi, Tamil, Telugu
 - **Instant Switching**: Change language without page reload
 - **Complete Translation**: All UI elements localized
 
-### 🎨 Modern UI/UX
+### Modern UI/UX
+
 - **Dark/Light Mode**: Comfortable viewing in any environment
 - **Responsive Design**: Works on desktop, tablet, and mobile
 - **Intuitive Navigation**: Easy-to-use interface for all users
@@ -144,7 +147,7 @@ This system provides a **comprehensive, end-to-end solution** for cloud-burst de
 
 ---
 
-## 🔧 Hardware Setup
+## Hardware Setup
 
 ### Sensor Node (Arduino Nano)
 
@@ -152,15 +155,15 @@ This system provides a **comprehensive, end-to-end solution** for cloud-burst de
 
 #### Components Required
 
-| Component | Specification | Quantity |
-|-----------|--------------|----------|
-| Arduino Nano | ATmega328P, 5V | 1 |
-| BMP280 Sensor | Temperature & Pressure | 1 |
-| LoRa Ra-02 Module | 433 MHz | 1 |
-| AMS1117 Regulator | 3.3V | 1 |
-| Capacitor | 100µF | 1 |
-| 433 MHz Antenna | Spring/Wire | 1 |
-| Breadboard & Wires | - | 1 set |
+| Component          | Specification          | Quantity |
+| ------------------ | ---------------------- | -------- |
+| Arduino Nano       | ATmega328P, 5V         | 1        |
+| BMP280 Sensor      | Temperature & Pressure | 1        |
+| LoRa Ra-02 Module  | 433 MHz                | 1        |
+| AMS1117 Regulator  | 3.3V                   | 1        |
+| Capacitor          | 100µF                  | 1        |
+| 433 MHz Antenna    | Spring/Wire            | 1        |
+| Breadboard & Wires | -                      | 1 set    |
 
 #### Wiring Diagram
 
@@ -207,35 +210,36 @@ LoRa ANT        →  433 MHz Antenna Wire
 
 COMMON CONNECTIONS
 ────────────────────────────────────────────────────────────────
-3.3V Rail: AMS1117 OUTPUT → 100µF Cap (+) → BMP280 VCC → 
+3.3V Rail: AMS1117 OUTPUT → 100µF Cap (+) → BMP280 VCC →
            BMP280 CSB → LoRa VCC
 
-GND Rail:  Arduino GND → AMS1117 GND → 100µF Cap (-) → 
+GND Rail:  Arduino GND → AMS1117 GND → 100µF Cap (-) →
            BMP280 GND → BMP280 SDO → LoRa GND
 ```
 
 #### Pin Connections Table
 
-| Component | Pin | Arduino Nano |
-|-----------|-----|--------------|
-| BMP280 | VCC | 3.3V (via AMS1117) |
-| BMP280 | GND | GND |
-| BMP280 | SCL | A5 |
-| BMP280 | SDA | A4 |
-| LoRa | VCC | 3.3V (via AMS1117) |
-| LoRa | GND | GND |
-| LoRa | MISO | D12 |
-| LoRa | MOSI | D11 |
-| LoRa | SCK | D13 |
-| LoRa | NSS | D10 |
-| LoRa | RST | D9 |
-| LoRa | DIO0 | D2 |
+| Component | Pin  | Arduino Nano       |
+| --------- | ---- | ------------------ |
+| BMP280    | VCC  | 3.3V (via AMS1117) |
+| BMP280    | GND  | GND                |
+| BMP280    | SCL  | A5                 |
+| BMP280    | SDA  | A4                 |
+| LoRa      | VCC  | 3.3V (via AMS1117) |
+| LoRa      | GND  | GND                |
+| LoRa      | MISO | D12                |
+| LoRa      | MOSI | D11                |
+| LoRa      | SCK  | D13                |
+| LoRa      | NSS  | D10                |
+| LoRa      | RST  | D9                 |
+| LoRa      | DIO0 | D2                 |
 
 #### Code Upload
 
 1. **Install Arduino IDE**: Download from [arduino.cc](https://www.arduino.cc/en/software)
 
 2. **Install Required Libraries**:
+
    - Go to `Sketch` → `Include Library` → `Manage Libraries`
    - Install:
      - `Adafruit BMP280 Library`
@@ -243,6 +247,7 @@ GND Rail:  Arduino GND → AMS1117 GND → 100µF Cap (-) →
      - `LoRa by Sandeep Mistry`
 
 3. **Upload Code**:
+
    - Open `MicroControlerCode/Node-Testing-2.ino`
    - Change `NODE_ID` if deploying multiple nodes:
      ```cpp
@@ -256,7 +261,7 @@ GND Rail:  Arduino GND → AMS1117 GND → 100µF Cap (-) →
 4. **Verify Operation**:
    - Open `Tools` → `Serial Monitor` (set to 9600 baud)
    - You should see: `NODE: node1` followed by sensor readings
-   - Look for: `✅ LoRa transmission successful`
+   - Look for: ` LoRa transmission successful`
 
 ---
 
@@ -266,13 +271,13 @@ GND Rail:  Arduino GND → AMS1117 GND → 100µF Cap (-) →
 
 #### Components Required
 
-| Component | Specification | Quantity |
-|-----------|--------------|----------|
-| NodeMCU ESP8266 | v1.0 with WiFi | 1 |
-| BME280 Sensor | Temp, Pressure, Humidity | 1 |
-| LoRa Ra-02 Module | 433 MHz | 1 |
-| 433 MHz Antenna | Spring/Wire | 1 |
-| Breadboard & Wires | - | 1 set |
+| Component          | Specification            | Quantity |
+| ------------------ | ------------------------ | -------- |
+| NodeMCU ESP8266    | v1.0 with WiFi           | 1        |
+| BME280 Sensor      | Temp, Pressure, Humidity | 1        |
+| LoRa Ra-02 Module  | 433 MHz                  | 1        |
+| 433 MHz Antenna    | Spring/Wire              | 1        |
+| Breadboard & Wires | -                        | 1 set    |
 
 #### Wiring Diagram
 
@@ -312,26 +317,27 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
 
 #### Pin Connections Table
 
-| Component | Pin | NodeMCU Pin | GPIO |
-|-----------|-----|-------------|------|
-| BME280 | VCC | 3.3V | - |
-| BME280 | GND | GND | - |
-| BME280 | SCL | D1 | GPIO5 |
-| BME280 | SDA | D3 | GPIO0 |
-| LoRa | VCC | 3.3V | - |
-| LoRa | GND | GND | - |
-| LoRa | MISO | D6 | GPIO12 |
-| LoRa | MOSI | D7 | GPIO13 |
-| LoRa | SCK | D5 | GPIO14 |
-| LoRa | NSS | D8 | GPIO15 |
-| LoRa | RST | D4 | GPIO2 |
-| LoRa | DIO0 | D2 | GPIO4 |
+| Component | Pin  | NodeMCU Pin | GPIO   |
+| --------- | ---- | ----------- | ------ |
+| BME280    | VCC  | 3.3V        | -      |
+| BME280    | GND  | GND         | -      |
+| BME280    | SCL  | D1          | GPIO5  |
+| BME280    | SDA  | D3          | GPIO0  |
+| LoRa      | VCC  | 3.3V        | -      |
+| LoRa      | GND  | GND         | -      |
+| LoRa      | MISO | D6          | GPIO12 |
+| LoRa      | MOSI | D7          | GPIO13 |
+| LoRa      | SCK  | D5          | GPIO14 |
+| LoRa      | NSS  | D8          | GPIO15 |
+| LoRa      | RST  | D4          | GPIO2  |
+| LoRa      | DIO0 | D2          | GPIO4  |
 
 #### Code Upload & Configuration
 
 1. **Install Arduino IDE** (if not already installed)
 
 2. **Add ESP8266 Board Support**:
+
    - Go to `File` → `Preferences`
    - In "Additional Boards Manager URLs", add:
      ```
@@ -341,12 +347,14 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
    - Search "ESP8266" and install
 
 3. **Install Required Libraries**:
+
    - `Adafruit BME280 Library`
    - `Adafruit Unified Sensor`
    - `LoRa by Sandeep Mistry`
    - `Firebase ESP8266 Client`
 
 4. **Configure WiFi & Firebase**:
+
    - Open `MicroControlerCode/Gateway_Testing_2.ino`
    - Update your WiFi credentials:
      ```cpp
@@ -360,19 +368,21 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
      ```
 
 5. **Upload Code**:
+
    - Select `Tools` → `Board` → `NodeMCU 1.0 (ESP-12E Module)`
    - Select the correct COM port
    - Click `Upload` ✓
 
 6. **Verify Operation**:
    - Open Serial Monitor (9600 baud)
-   - Should see: `✅ WiFi Connected`
-   - Should see: `✅ Firebase Connected`
-   - Should see: `📡 LoRa packet received` when nodes transmit
+   - Should see: ` WiFi Connected`
+   - Should see: ` Firebase Connected`
+   - Should see: ` LoRa packet received` when nodes transmit
 
 #### Important Notes
 
-⚠️ **Critical Requirements**:
+**Critical Requirements**:
+
 - LoRa module **MUST** have antenna connected (never operate without antenna!)
 - All sensor nodes and gateway must use the same LoRa frequency (433 MHz)
 - Serial monitor must be set to **9600 baud** (not 115200)
@@ -380,7 +390,7 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
 
 ---
 
-## 💻 Software Setup
+## Software Setup
 
 ### Prerequisites
 
@@ -392,12 +402,14 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
 ### Installation
 
 1. **Clone the Repository**:
+
    ```bash
    git clone <repository-url>
    cd Cloud-burst-detection-website/cloudburst-detection
    ```
 
 2. **Install Dependencies**:
+
    ```bash
    npm install
    ```
@@ -405,37 +417,41 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
 3. **Configure Firebase**:
 
    **Option A: Using the existing configuration** (for testing):
+
    - The project comes with a pre-configured Firebase database
    - Located in `src/lib/firebase.js`
    - Ready to use immediately
 
    **Option B: Using your own Firebase project** (recommended for production):
-   
+
    a. Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com/)
-   
+
    b. Enable **Realtime Database**:
-      - Go to `Build` → `Realtime Database`
-      - Click `Create Database`
-      - Start in **test mode** (for development)
-   
+
+   - Go to `Build` → `Realtime Database`
+   - Click `Create Database`
+   - Start in **test mode** (for development)
+
    c. Get your configuration:
-      - Go to `Project Settings` → `General`
-      - Scroll to "Your apps" → Click web icon `</>`
-      - Copy the configuration object
-   
+
+   - Go to `Project Settings` → `General`
+   - Scroll to "Your apps" → Click web icon `</>`
+   - Copy the configuration object
+
    d. Update `src/lib/firebase.js`:
-      ```javascript
-      const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID",
-        measurementId: "YOUR_MEASUREMENT_ID"
-      };
-      ```
+
+   ```javascript
+   const firebaseConfig = {
+     apiKey: "YOUR_API_KEY",
+     authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+     databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+     projectId: "YOUR_PROJECT_ID",
+     storageBucket: "YOUR_PROJECT_ID.appspot.com",
+     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+     appId: "YOUR_APP_ID",
+     measurementId: "YOUR_MEASUREMENT_ID",
+   };
+   ```
 
 4. **Firebase Database Structure**:
 
@@ -505,6 +521,7 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
    See [SMS Notification System](#sms-notification-system) section for detailed setup.
 
 6. **Run Development Server**:
+
    ```bash
    npm run dev
    ```
@@ -512,10 +529,10 @@ GND Rail:  NodeMCU GND → BME280 GND → LoRa GND
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 7. **Verify Installation**:
-   - ✅ Homepage loads with statistics
-   - ✅ Dashboard shows map (may be empty if no nodes registered)
-   - ✅ Console shows: `✅ Firebase initialized successfully`
-   - ✅ No errors in browser console
+   - Homepage loads with statistics
+   - Dashboard shows map (may be empty if no nodes registered)
+   - Console shows: ` Firebase initialized successfully`
+   - No errors in browser console
 
 ### Building for Production
 
@@ -575,6 +592,7 @@ npm run dev
 #### Step 5: Test SMS
 
 1. **Verify recipient phone number** (for trial accounts):
+
    - Go to [Twilio Console → Phone Numbers → Verified Numbers](https://console.twilio.com/us1/develop/phone-numbers/manage/verified)
    - Add your phone number
 
@@ -586,20 +604,22 @@ npm run dev
 
 ### Features
 
-- ✅ **Bulk SMS**: Send to multiple recipients simultaneously
-- ✅ **Status Tracking**: Monitor delivery success/failure
-- ✅ **Partial Success Handling**: Continue even if some deliveries fail
-- ✅ **Error Logging**: Detailed error messages for debugging
-- ✅ **Firebase Integration**: All SMS events logged to database
+- **Bulk SMS**: Send to multiple recipients simultaneously
+- **Status Tracking**: Monitor delivery success/failure
+- **Partial Success Handling**: Continue even if some deliveries fail
+- **Error Logging**: Detailed error messages for debugging
+- **Firebase Integration**: All SMS events logged to database
 
 ### Limitations
 
 **Free Trial Account**:
+
 - Can only send to verified phone numbers
 - $15 credit (1,500 SMS)
 - SMS cost: ~$0.01 per message
 
 **Paid Account**:
+
 - Send to any valid phone number
 - $20 minimum top-up
 - No restrictions
@@ -607,12 +627,13 @@ npm run dev
 ### Detailed Documentation
 
 For complete setup instructions, troubleshooting, and API reference, see:
-- 📖 [SMS_SYSTEM_README.md](SMS_SYSTEM_README.md) - Full SMS documentation
-- 📖 [SMS_QUICK_START.txt](SMS_QUICK_START.txt) - Quick reference guide
+
+- [SMS_SYSTEM_README.md](SMS_SYSTEM_README.md) - Full SMS documentation
+- [SMS_QUICK_START.txt](SMS_QUICK_START.txt) - Quick reference guide
 
 ---
 
-## 🤖 Machine Learning Model
+## Machine Learning Model
 
 The system uses an **XGBoost** (Extreme Gradient Boosting) machine learning model to predict cloudburst events based on historical weather data and real-time sensor readings.
 
@@ -627,18 +648,18 @@ The system uses an **XGBoost** (Extreme Gradient Boosting) machine learning mode
 
 The model analyzes 10+ meteorological parameters:
 
-| Feature | Description | Unit |
-|---------|-------------|------|
-| `minTemp` | Daily minimum temperature | °C |
-| `maxTemp` | Daily maximum temperature | °C |
-| `rainfall` | Precipitation amount | mm |
-| `windGustSpeed` | Maximum wind gust | km/h |
-| `humidity9am` | Morning humidity | % |
-| `humidity3pm` | Afternoon humidity | % |
-| `pressure9am` | Morning pressure | hPa |
-| `pressure3pm` | Afternoon pressure | hPa |
-| `temp9am` | Morning temperature | °C |
-| `temp3pm` | Afternoon temperature | °C |
+| Feature         | Description               | Unit |
+| --------------- | ------------------------- | ---- |
+| `minTemp`       | Daily minimum temperature | °C   |
+| `maxTemp`       | Daily maximum temperature | °C   |
+| `rainfall`      | Precipitation amount      | mm   |
+| `windGustSpeed` | Maximum wind gust         | km/h |
+| `humidity9am`   | Morning humidity          | %    |
+| `humidity3pm`   | Afternoon humidity        | %    |
+| `pressure9am`   | Morning pressure          | hPa  |
+| `pressure3pm`   | Afternoon pressure        | hPa  |
+| `temp9am`       | Morning temperature       | °C   |
+| `temp3pm`       | Afternoon temperature     | °C   |
 
 ### How It Works
 
@@ -652,6 +673,7 @@ The model analyzes 10+ meteorological parameters:
 **Endpoint**: `/api/predict`
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -679,19 +701,20 @@ To retrain with new data:
 
 1. Add new records to `cloudburst_cleaned.csv`
 2. Run training script (Python required):
+
    ```python
    # train_model.py (create this)
    import pandas as pd
    import xgboost as xgb
    import pickle
-   
+
    # Load data
    df = pd.read_csv('cloudburst_cleaned.csv')
-   
+
    # Train model (add your training code)
    model = xgb.XGBClassifier()
    # ... training logic ...
-   
+
    # Save model
    pickle.dump(model, open('cloudburst_xgb_model.pkl', 'wb'))
    ```
@@ -704,18 +727,18 @@ To retrain with new data:
 
 After starting the application, you can access:
 
-| Page | URL | Description |
-|------|-----|-------------|
-| **Home** | `/` | Live statistics and recent alerts |
-| **Dashboard** | `/dashboard` | Interactive map with sensor nodes |
-| **Prediction** | `/prediction` | ML-based cloudburst forecasts |
-| **Graphs** | `/graphs` | Historical data visualization |
-| **Alerts** | `/alerts` | View and manage all alerts |
-| **Admin Panel** | `/admin` | Create alerts, manage system |
-| **Contacts** | `/contacts` | Manage contact list for SMS |
-| **Register Node** | `/register` | Register new sensor nodes |
-| **Settings** | `/settings` | System preferences |
-| **About** | `/about` | Project information |
+| Page              | URL           | Description                       |
+| ----------------- | ------------- | --------------------------------- |
+| **Home**          | `/`           | Live statistics and recent alerts |
+| **Dashboard**     | `/dashboard`  | Interactive map with sensor nodes |
+| **Prediction**    | `/prediction` | ML-based cloudburst forecasts     |
+| **Graphs**        | `/graphs`     | Historical data visualization     |
+| **Alerts**        | `/alerts`     | View and manage all alerts        |
+| **Admin Panel**   | `/admin`      | Create alerts, manage system      |
+| **Contacts**      | `/contacts`   | Manage contact list for SMS       |
+| **Register Node** | `/register`   | Register new sensor nodes         |
+| **Settings**      | `/settings`   | System preferences                |
+| **About**         | `/about`      | Project information               |
 
 ### Registering a Sensor Node
 
@@ -792,7 +815,7 @@ After starting the application, you can access:
 
 ### Switching Languages
 
-1. Look for language selector in navigation bar (🌐)
+1. Look for language selector in navigation bar
 2. Click to open dropdown
 3. Select from:
    - English
@@ -811,13 +834,14 @@ After starting the application, you can access:
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Deploy to Vercel (Recommended)
 
 Vercel is the recommended platform for deploying Next.js applications.
 
 1. **Push Code to GitHub**:
+
    ```bash
    git init
    git add .
@@ -827,12 +851,14 @@ Vercel is the recommended platform for deploying Next.js applications.
    ```
 
 2. **Import to Vercel**:
+
    - Go to [vercel.com](https://vercel.com/)
    - Click "New Project"
    - Import your GitHub repository
    - Vercel auto-detects Next.js configuration
 
 3. **Configure Environment Variables**:
+
    - In Vercel dashboard, go to `Settings` → `Environment Variables`
    - Add each variable from your `.env.local`:
      ```
@@ -843,6 +869,7 @@ Vercel is the recommended platform for deploying Next.js applications.
      ```
 
 4. **Deploy**:
+
    - Click "Deploy"
    - Wait for build to complete (~2-3 minutes)
    - Your site is live! ✓
@@ -899,63 +926,63 @@ For production, update Firebase Realtime Database rules:
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Hardware
 
-| Component | Specification | Purpose |
-|-----------|--------------|---------|
-| **Arduino Nano** | ATmega328P, 5V | Sensor node controller |
-| **NodeMCU ESP8266** | WiFi enabled | Gateway controller |
-| **BMP280** | I2C sensor | Temperature & pressure |
-| **BME280** | I2C sensor | Temp, pressure, humidity |
-| **LoRa Ra-02** | 433 MHz, SX1278 | Long-range radio |
-| **AMS1117** | 3.3V regulator | Power management |
+| Component           | Specification   | Purpose                  |
+| ------------------- | --------------- | ------------------------ |
+| **Arduino Nano**    | ATmega328P, 5V  | Sensor node controller   |
+| **NodeMCU ESP8266** | WiFi enabled    | Gateway controller       |
+| **BMP280**          | I2C sensor      | Temperature & pressure   |
+| **BME280**          | I2C sensor      | Temp, pressure, humidity |
+| **LoRa Ra-02**      | 433 MHz, SX1278 | Long-range radio         |
+| **AMS1117**         | 3.3V regulator  | Power management         |
 
 ### Software - Frontend
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| **Next.js** | 15.5.4 | React framework |
-| **React** | 19.1.0 | UI library |
-| **TailwindCSS** | 3.4.18 | Styling |
-| **Leaflet** | 1.9.4 | Interactive maps |
-| **Recharts** | 3.2.1 | Data visualization |
-| **Lucide React** | 0.544.0 | Icon library |
-| **next-intl** | 4.3.11 | Internationalization |
-| **next-themes** | 0.4.6 | Dark mode support |
-| **date-fns** | 4.1.0 | Date formatting |
+| Technology       | Version | Purpose              |
+| ---------------- | ------- | -------------------- |
+| **Next.js**      | 15.5.4  | React framework      |
+| **React**        | 19.1.0  | UI library           |
+| **TailwindCSS**  | 3.4.18  | Styling              |
+| **Leaflet**      | 1.9.4   | Interactive maps     |
+| **Recharts**     | 3.2.1   | Data visualization   |
+| **Lucide React** | 0.544.0 | Icon library         |
+| **next-intl**    | 4.3.11  | Internationalization |
+| **next-themes**  | 0.4.6   | Dark mode support    |
+| **date-fns**     | 4.1.0   | Date formatting      |
 
 ### Software - Backend
 
-| Technology | Purpose |
-|-----------|---------|
-| **Firebase** | Real-time database & hosting |
-| **Twilio API** | SMS notifications |
-| **Next.js API Routes** | Serverless functions |
+| Technology             | Purpose                      |
+| ---------------------- | ---------------------------- |
+| **Firebase**           | Real-time database & hosting |
+| **Twilio API**         | SMS notifications            |
+| **Next.js API Routes** | Serverless functions         |
 
 ### Machine Learning
 
-| Technology | Purpose |
-|-----------|---------|
-| **XGBoost** | Gradient boosting classifier |
-| **Python** | Model training |
-| **Pandas** | Data processing |
-| **scikit-learn** | ML utilities |
+| Technology       | Purpose                      |
+| ---------------- | ---------------------------- |
+| **XGBoost**      | Gradient boosting classifier |
+| **Python**       | Model training               |
+| **Pandas**       | Data processing              |
+| **scikit-learn** | ML utilities                 |
 
 ### Communication Protocols
 
-| Protocol | Purpose |
-|----------|---------|
-| **LoRa** | Long-range radio (433 MHz) |
-| **WiFi** | Gateway internet connectivity |
-| **I2C** | Sensor communication |
-| **SPI** | LoRa module interface |
-| **HTTPS** | Secure web access |
+| Protocol  | Purpose                       |
+| --------- | ----------------------------- |
+| **LoRa**  | Long-range radio (433 MHz)    |
+| **WiFi**  | Gateway internet connectivity |
+| **I2C**   | Sensor communication          |
+| **SPI**   | LoRa module interface         |
+| **HTTPS** | Secure web access             |
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Cloud-burst-detection-website/
@@ -1026,35 +1053,40 @@ Cloud-burst-detection-website/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions to improve the Cloud-Burst Detection System!
 
 ### How to Contribute
 
 1. **Fork the Repository**
+
    ```bash
    git clone <your-fork-url>
    cd Cloud-burst-detection-website
    ```
 
 2. **Create a Feature Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 3. **Make Your Changes**
+
    - Write clean, documented code
    - Follow existing code style
    - Test thoroughly
 
 4. **Commit Your Changes**
+
    ```bash
    git add .
    git commit -m "Add: Your feature description"
    ```
 
 5. **Push to Your Fork**
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -1075,13 +1107,13 @@ We welcome contributions to improve the Cloud-Burst Detection System!
 
 ### Areas for Contribution
 
-- 🐛 **Bug Fixes**: Report or fix issues
-- ✨ **New Features**: Add functionality (discuss first!)
-- 📝 **Documentation**: Improve README, add tutorials
-- 🌍 **Translations**: Add more languages
-- 🎨 **UI/UX**: Enhance design and user experience
-- 🧪 **Testing**: Add unit/integration tests
-- ⚡ **Performance**: Optimize code and queries
+- **Bug Fixes**: Report or fix issues
+- **New Features**: Add functionality (discuss first!)
+- **Documentation**: Improve README, add tutorials
+- **Translations**: Add more languages
+- **UI/UX**: Enhance design and user experience
+- **Testing**: Add unit/integration tests
+- **Performance**: Optimize code and queries
 
 ### Reporting Issues
 
@@ -1097,7 +1129,7 @@ Found a bug? Please report it:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**.
 
@@ -1127,7 +1159,7 @@ SOFTWARE.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 ### Team
 
@@ -1136,6 +1168,7 @@ This project was developed as part of the **Smart India Hackathon** initiative t
 ### Technologies
 
 We're grateful to the developers and maintainers of:
+
 - [Next.js](https://nextjs.org/) - The React framework for production
 - [Firebase](https://firebase.google.com/) - Backend-as-a-Service platform
 - [Leaflet](https://leafletjs.com/) - Open-source mapping library
@@ -1153,67 +1186,22 @@ We're grateful to the developers and maintainers of:
 
 ---
 
-## 📞 Support
-
-### Get Help
-
-**Documentation**:
-- 📖 Main README (this file)
-- 📖 [SMS_SYSTEM_README.md](SMS_SYSTEM_README.md) - SMS setup
-- 📖 [node_Connection.md](MicroControlerCode/node_Connection.md) - Hardware wiring
-- 📖 [Gateway_Connection.md](MicroControlerCode/Gateway_Connection.md) - Gateway setup
-
-**Community**:
-- 💬 GitHub Issues: Report bugs or request features
-- 📧 Email: [your-email@example.com]
-- 🌐 Website: [your-project-website.com]
-
-### Troubleshooting
-
-**Common Issues**:
-
-1. **Nodes not appearing on dashboard**
-   - Verify Firebase credentials
-   - Check node GPS coordinates are valid
-   - Ensure LoRa transmission successful
-   - Verify gateway WiFi connection
-
-2. **SMS not sending**
-   - Check Twilio credentials in `.env.local`
-   - Verify recipient number is verified (for trial accounts)
-   - Restart development server after config changes
-   - Check console for error messages
-
-3. **Map not loading**
-   - Leaflet requires client-side rendering
-   - Check browser console for errors
-   - Verify GPS coordinates are in valid range
-   - Try different browser
-
-4. **Firebase connection fails**
-   - Verify Firebase credentials in `firebase.js`
-   - Check Firebase database rules
-   - Ensure internet connectivity
-   - Check Firebase console for quota limits
-
----
-
-## 🚦 System Status
+## System Status
 
 Current Version: **v1.0.0**
 
-| Component | Status |
-|-----------|--------|
-| Web Dashboard | ✅ Operational |
-| Firebase Database | ✅ Operational |
-| SMS Notifications | ✅ Operational |
-| ML Predictions | ✅ Operational |
-| Hardware Nodes | ✅ Tested |
-| Gateway | ✅ Tested |
+| Component         | Status      |
+| ----------------- | ----------- |
+| Web Dashboard     | Operational |
+| Firebase Database | Operational |
+| SMS Notifications | Operational |
+| ML Predictions    | Operational |
+| Hardware Nodes    | Tested      |
+| Gateway           | Tested      |
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
 ### Future Enhancements
 
@@ -1229,17 +1217,3 @@ Current Version: **v1.0.0**
 - [ ] **AI Chatbot**: Natural language query interface
 
 ---
-
-<div align="center">
-
-## ⭐ Star This Repository
-
-If this project helped you or you find it interesting, please consider giving it a star! ⭐
-
-**Made with ❤️ for safer communities**
-
----
-
-*Cloud-Burst Detection System - Protecting lives through technology*
-
-</div>
