@@ -71,27 +71,27 @@ This system provides **hyperlocal weather insights**, **AI-based alerts**, and a
 
 ## Key Features
 
-✅ Real-time **sensor data visualization**  
-✅ **AI-powered** anomaly detection using XGBoost  
-✅ Multi-level **alert system** (Threshold / AI / Manual)  
-✅ **SMS, Siren, and App notifications** for end-users  
-✅ **Decentralized LoRa Mesh** for connectivity in remote terrain  
-✅ **Solar-powered** low-cost hardware (~₹2.5K–3K per node)  
-✅ **Live dashboard** with intuitive UI  
-✅ **High reliability:** 99% uptime in field tests  
-✅ **Community-friendly deployment** model
+Real-time **sensor data visualization**  
+**AI-powered** anomaly detection using XGBoost  
+Multi-level **alert system** (Threshold / AI / Manual)  
+**SMS, Siren, and App notifications** for end-users  
+**Decentralized LoRa Mesh** for connectivity in remote terrain  
+**Solar-powered** low-cost hardware (~₹2.5K–3K per node)  
+**Live dashboard** with intuitive UI  
+**High reliability:** 99% uptime in field tests  
+**Community-friendly deployment** model
 
 ---
 
 ## Results and Impact
 
-- ⚡ **95%+ precision** in cloudburst prediction during trials  
-- 📡 **Instant alerts** via SMS and mobile notifications  
-- 🌄 **Designed for hilly and rural terrains** with no network dependency  
-- 💰 **10x cheaper** than existing commercial weather stations  
-- 👥 **1,500,000+ lives protected** (projected reach)  
-- 💸 **₹200+ Cr annual savings** via early evacuation and damage prevention  
-- 🌱 Aligned with **UN SDGs 3, 9, 11, and 13**
+- **95%+ precision** in cloudburst prediction during trials  
+- **Instant alerts** via SMS and mobile notifications  
+- **Designed for hilly and rural terrains** with no network dependency  
+- **10x cheaper** than existing commercial weather stations  
+- **1,500,000+ lives protected** (projected reach)  
+- **₹200+ Cr annual savings** via early evacuation and damage prevention  
+- Aligned with **UN SDGs 3, 9, 11, and 13**
 
 ---
 
